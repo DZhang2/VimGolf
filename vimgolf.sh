@@ -675,34 +675,37 @@ count_keystrokes() {
 
     local keystrokes=0
     if [ -f "$script_file" ]; then
-        local total_bytes
-        total_bytes=$(wc -c < "$script_file" | tr -d ' ')
+        # Count real keystrokes from the scriptout. Two things need care:
+        #   1. Commands that wait for a literal char argument (f t F T r `) make
+        #      vim write a 3-byte internal artifact 0x80 0xfd 0xNN into the log
+        #      that is NOT a keystroke the user typed. With a replayed macro this
+        #      artifact is emitted on every replay and badly inflates the count.
+        #   2. Genuine special keys (arrows, etc.) are written as 0x80 + 2 bytes
+        #      and should count as a single keystroke.
+        #   3. The trailing save command (:wq, :q!, :x, :w, ZZ) is not counted.
+        keystrokes=$(perl -e '
+            local $/;
+            open(my $fh, "<:raw", $ARGV[0]) or do { print 0; exit };
+            my $d = <$fh>;
+            close $fh;
 
-        # Detect the save command at the end and subtract it
-        local save_len=0
-        local tail4
-        tail4=$(tail -c 4 "$script_file" | xxd -p | tr -d '\n')
-        local tail3
-        tail3=$(tail -c 3 "$script_file" | xxd -p | tr -d '\n')
-        local tail2
-        tail2=$(tail -c 2 "$script_file" | xxd -p | tr -d '\n')
+            # Drop the char-argument artifacts left by f/t/F/T/r/`
+            $d =~ s/\x80\xfd.//gs;
 
-        if [[ "$tail4" == "3a77710a" || "$tail4" == "3a77710d" ]]; then
-            save_len=4   # :wq<CR>
-        elif [[ "$tail4" == "3a71210a" || "$tail4" == "3a71210d" ]]; then
-            save_len=4   # :q!<CR>
-        elif [[ "$tail3" == "3a780a" || "$tail3" == "3a780d" ]]; then
-            save_len=3   # :x<CR>
-        elif [[ "$tail3" == "3a770a" || "$tail3" == "3a770d" ]]; then
-            save_len=3   # :w<CR>
-        elif [[ "$tail2" == "5a5a" ]]; then
-            save_len=2   # ZZ
-        fi
+            # Strip the trailing save command
+            $d =~ s/(?::wq|:q!|:x|:w)[\r\n]\z// or $d =~ s/ZZ\z//;
 
-        keystrokes=$((total_bytes - save_len))
-        if [ $keystrokes -lt 0 ]; then
-            keystrokes=0
-        fi
+            # Count: a 0x80-prefixed special key (3 bytes) is one keystroke;
+            # every other byte is one keystroke.
+            my @b = unpack("C*", $d);
+            my $n = 0;
+            for (my $i = 0; $i < @b; $i++) {
+                if ($b[$i] == 0x80 && $i + 2 < @b) { $i += 2; }
+                $n++;
+            }
+            print $n;
+        ' "$script_file")
+        [ -z "$keystrokes" ] && keystrokes=0
     fi
 
     rm -f "$script_file"
