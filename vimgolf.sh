@@ -351,6 +351,319 @@ EOF
     echo "$par|$hint1|$hint2|$desc"
 }
 
+is_level_completed() {
+    local level=$1
+    [ -f "$SCORE_FILE" ] && grep -q "^level${level}:" "$SCORE_FILE"
+}
+
+setup_hard_level() {
+    local level=$1
+    local start_file="$LEVEL_DIR/hard_start_${level}.txt"
+    local goal_file="$LEVEL_DIR/hard_goal_${level}.txt"
+    local par=""
+    local hint1=""
+    local hint2=""
+    local desc=""
+
+    case $level in
+        1)
+            desc="Delete line 50 (out of 100)"
+            par=5
+            hint1="Line addressing is faster than scrolling"
+            hint2="Ex command :Nd deletes line N directly"
+            # 100 lines, need to delete line 50
+            seq 1 100 | sed 's/^/line /' > "$start_file"
+            seq 1 100 | sed 's/^/line /' | sed '50d' > "$goal_file"
+            ;;
+        2)
+            desc="Change 'foo' to 'bar' on 100 lines"
+            par=12
+            hint1="The same command scales to any file size"
+            hint2=":%s doesn't care if the file is 3 or 3000 lines"
+            for i in $(seq 1 100); do echo "line $i has foo in it"; done > "$start_file"
+            for i in $(seq 1 100); do echo "line $i has bar in it"; done > "$goal_file"
+            ;;
+        3)
+            desc="Reverse 100 lines"
+            par=8
+            hint1="Your solution should be line-count agnostic"
+            hint2="The same global+move trick works regardless of file length"
+            seq 1 100 > "$start_file"
+            seq 100 -1 1 > "$goal_file"
+            ;;
+        4)
+            desc="Surround 100 words with quotes"
+            par=11
+            hint1="If your solution mentions a count, it won't scale"
+            hint2=":%s on .* works for any number of lines"
+            local words=("alpha" "bravo" "charlie" "delta" "echo" "foxtrot" "golf" "hotel"
+                        "india" "juliet" "kilo" "lima" "mike" "november" "oscar" "papa"
+                        "quebec" "romeo" "sierra" "tango" "uniform" "victor" "whiskey" "xray"
+                        "yankee" "zulu" "amber" "bronze" "coral" "dusk" "ember" "frost"
+                        "garnet" "haze" "ivory" "jade" "karma" "lapis" "mango" "nebula"
+                        "opal" "prism" "quartz" "ruby" "slate" "topaz" "umber" "velvet"
+                        "willow" "xenon" "yarrow" "zinc" "acacia" "basil" "cedar" "daisy"
+                        "elm" "fern" "ginger" "holly" "iris" "jasmine" "kelp" "laurel"
+                        "maple" "nettle" "orchid" "palm" "reed" "sage" "thyme" "violet"
+                        "wisteria" "yarrow" "azalea" "birch" "clover" "daffodil" "eucalyptus"
+                        "fig" "grape" "hazel" "ivy" "juniper" "kale" "lemon" "mint"
+                        "nutmeg" "olive" "peach" "rose" "saffron" "tulip" "vanilla"
+                        "walnut" "xylose" "yew" "zinnia" "apricot" "bay" "cumin")
+            printf '%s\n' "${words[@]:0:100}" > "$start_file"
+            sed 's/.*/"&"/' "$start_file" > "$goal_file"
+            ;;
+        5)
+            desc="Convert 50 camelCase identifiers to snake_case"
+            par=16
+            hint1="The regex solution is O(1) keystrokes regardless of line count"
+            hint2=":%s/\\u/_\\l&/g with % range — same command, 50 lines"
+            local camels=("camelCase" "getUserName" "processItem" "doStuff" "valueOf"
+                         "getFirstName" "setLastName" "isReady" "hasPermission" "canExecute"
+                         "findElement" "createElement" "removeChild" "appendChild" "insertBefore"
+                         "getContext" "setInterval" "clearTimeout" "addListener" "removeHandler"
+                         "fetchData" "parseResult" "formatOutput" "validateInput" "transformItem"
+                         "openFile" "closeStream" "readBuffer" "writeContent" "flushCache"
+                         "startEngine" "stopProcess" "pauseTimer" "resumeTask" "cancelJob"
+                         "buildProject" "deployService" "testModule" "debugError" "logMessage"
+                         "sendRequest" "getResponse" "postUpdate" "deleteRecord" "patchConfig"
+                         "mountVolume" "unmountDisk" "formatDrive" "scanPort" "pingHost")
+            printf '%s\n' "${camels[@]}" > "$start_file"
+            perl -pe 's/([a-z])([A-Z])/${1}_\l$2/g' "$start_file" > "$goal_file"
+            ;;
+        6)
+            desc="Sort and deduplicate 200 lines (50 unique)"
+            par=7
+            hint1="The ex command doesn't care about input size"
+            hint2=":sort u — same 7 keystrokes whether it's 7 or 700 lines"
+            local items=("apple" "banana" "cherry" "date" "elderberry" "fig" "grape"
+                        "honeydew" "kiwi" "lemon" "mango" "nectarine" "orange" "papaya"
+                        "quince" "raspberry" "strawberry" "tangerine" "ugli" "vanilla"
+                        "watermelon" "ximenia" "yuzu" "zucchini" "almond" "blueberry"
+                        "coconut" "dragonfruit" "eggplant" "fennel" "guava" "hazelnut"
+                        "jackfruit" "kumquat" "lime" "mulberry" "nutmeg" "olive" "peach"
+                        "raisin" "sage" "tamarind" "ube" "vine" "walnut" "xigua"
+                        "yam" "zest" "apricot" "boysenberry")
+            # Repeat each item ~4 times in random-ish order
+            for rep in 1 2 3 4; do
+                for item in "${items[@]}"; do echo "$item"; done
+            done | sort -R 2>/dev/null | head -200 > "$start_file"
+            # If sort -R not available, use a deterministic shuffle
+            if [ ! -s "$start_file" ]; then
+                for rep in 1 2 3 4; do
+                    for item in "${items[@]}"; do echo "$item"; done
+                done | awk 'BEGIN{srand(42)}{print rand()"\t"$0}' | sort -n | cut -f2 | head -200 > "$start_file"
+            fi
+            sort -u "$start_file" > "$goal_file"
+            ;;
+        7)
+            desc="Increment all numbers by 1 (50 lines, 2 numbers each)"
+            par=12
+            hint1="A macro that handles one line replays to handle all"
+            hint2="Record: Ctrl-A, move past, Ctrl-A, next line — then replay 49 times"
+            for i in $(seq 1 50); do
+                printf "item %d: value %d\n" "$i" "$((i * 10))"
+            done > "$start_file"
+            for i in $(seq 1 50); do
+                printf "item %d: value %d\n" "$((i + 1))" "$((i * 10 + 1))"
+            done > "$goal_file"
+            ;;
+        8)
+            desc="Convert 30-row CSV to markdown table"
+            par=30
+            hint1="Same substitution approach — the manual part is just the separator"
+            hint2=":%s handles all rows; you only type the --- line once"
+            {
+                echo "name,age,city,role"
+                local names=("Alice" "Bob" "Carol" "Dave" "Eve" "Frank" "Grace" "Hank"
+                           "Iris" "Jack" "Kate" "Leo" "Mia" "Nick" "Olga" "Pete"
+                           "Quinn" "Rose" "Sam" "Tina" "Uma" "Vince" "Wendy" "Xander"
+                           "Yuki" "Zane" "Amy" "Brian" "Chloe" "Derek")
+                local cities=("NYC" "LA" "SF" "CHI" "SEA" "ATX" "DEN" "MIA" "BOS" "PDX")
+                local roles=("eng" "mgr" "ops" "sre" "qa")
+                for i in $(seq 0 29); do
+                    echo "${names[$i]},$((20 + RANDOM % 40)),${cities[$((i % 10))]},${roles[$((i % 5))]}"
+                done
+            } > "$start_file"
+            {
+                # Build the goal
+                local header
+                header=$(head -1 "$start_file")
+                echo "| ${header//,/ | } |"
+                echo "|------|-----|------|------|"
+                tail -n +2 "$start_file" | while IFS= read -r line; do
+                    echo "| ${line//,/ | } |"
+                done
+            } > "$goal_file"
+            ;;
+        9)
+            desc="Align = signs across 30 variable assignments"
+            par=22
+            hint1="Manual dot-repeat won't scale — think substitution or external tools"
+            hint2=":%!column -t or a clever substitution with \\s can align columns"
+            local varnames=("x" "ip" "url" "name" "port" "host" "timeout"
+                          "db" "key" "val" "max" "min" "count" "index"
+                          "path" "file" "mode" "size" "type" "flag"
+                          "mask" "base" "root" "node" "edge" "rate"
+                          "step" "seed" "tag" "log")
+            for v in "${varnames[@]}"; do
+                echo "$v = 1"
+            done > "$start_file"
+            # Align: pad each name to length of longest (7 = "timeout")
+            for v in "${varnames[@]}"; do
+                printf "%-7s = 1\n" "$v"
+            done > "$goal_file"
+            ;;
+        10)
+            desc="Extract 50 function names from Python source"
+            par=20
+            hint1="Same approach scales — inverse global + norm"
+            hint2=":v/^d/d removes non-def lines, :%norm trims the rest"
+            {
+                local fnames=("init" "setup" "teardown" "connect" "disconnect"
+                             "send_data" "recv_data" "parse_msg" "validate_req" "handle_err"
+                             "open_conn" "close_conn" "read_buf" "write_buf" "flush_buf"
+                             "start_srv" "stop_srv" "restart_srv" "check_health" "get_status"
+                             "set_config" "load_config" "save_config" "reset_config" "dump_state"
+                             "create_user" "delete_user" "update_user" "find_user" "list_users"
+                             "add_item" "remove_item" "get_item" "put_item" "scan_items"
+                             "encode_msg" "decode_msg" "compress" "decompress" "encrypt"
+                             "decrypt" "sign_token" "verify_token" "refresh_token" "revoke_token"
+                             "run_task" "stop_task" "queue_task" "poll_queue" "drain_queue")
+                for f in "${fnames[@]}"; do
+                    echo "def ${f}(self, *args):"
+                    echo "    logger.info('${f} called')"
+                    echo "    pass"
+                    echo ""
+                done
+            } > "$start_file"
+            printf '%s\n' "${fnames[@]}" > "$goal_file"
+            ;;
+        11)
+            desc="Swap two columns (100 rows)"
+            par=27
+            hint1="External filter doesn't care about row count"
+            hint2=":%!awk — same command, 100 lines processed instantly"
+            for i in $(seq 1 100); do
+                printf "user%-4d %03d\n" "$i" "$((RANDOM % 999))"
+            done > "$start_file"
+            awk '{printf "%s   %s\n", $2, $1}' "$start_file" > "$goal_file"
+            ;;
+        12)
+            desc="Remove 50 blank lines from 100 content lines"
+            par=7
+            hint1="Same command, bigger file — still 7 keystrokes"
+            hint2=":v/./d works on any file size"
+            {
+                for i in $(seq 1 100); do
+                    echo "content line $i"
+                    echo ""
+                done
+            } > "$start_file"
+            grep -v '^$' "$start_file" > "$goal_file"
+            ;;
+        13)
+            desc="Convert 50 items to JSON array"
+            par=24
+            hint1="Substitution + edge fixes — count doesn't matter"
+            hint2=":%s wraps all lines; \$x removes last comma; add brackets"
+            local colors=("red" "orange" "yellow" "green" "blue" "indigo" "violet"
+                         "crimson" "scarlet" "coral" "salmon" "peach" "amber" "gold"
+                         "lime" "emerald" "teal" "cyan" "azure" "navy" "cobalt"
+                         "plum" "magenta" "fuchsia" "pink" "rose" "maroon" "burgundy"
+                         "chocolate" "sienna" "tan" "khaki" "ivory" "cream" "snow"
+                         "silver" "charcoal" "slate" "onyx" "obsidian" "jet" "ebony"
+                         "pearl" "opal" "ruby" "sapphire" "topaz" "garnet" "jade" "amethyst")
+            printf '%s\n' "${colors[@]}" > "$start_file"
+            {
+                echo "["
+                local total=${#colors[@]}
+                for ((i=0; i<total; i++)); do
+                    if [ $i -lt $((total - 1)) ]; then
+                        echo "  \"${colors[$i]}\","
+                    else
+                        echo "  \"${colors[$i]}\""
+                    fi
+                done
+                echo "]"
+            } > "$goal_file"
+            ;;
+        14)
+            desc="Number 100 lines (1. through 100.)"
+            par=17
+            hint1="Sequential increment is the only sane approach at scale"
+            hint2="Prepend 0. then visual-block g Ctrl-A — handles multi-digit numbers"
+            local items=("apple" "banana" "cherry" "date" "elderberry" "fig" "grape"
+                        "honeydew" "kiwi" "lemon" "mango" "nectarine" "orange" "papaya"
+                        "quince" "raspberry" "strawberry" "tangerine" "ugli" "vanilla"
+                        "watermelon" "ximenia" "yuzu" "zucchini" "almond" "blueberry"
+                        "coconut" "dragonfruit" "eggplant" "fennel" "guava" "hazelnut"
+                        "jackfruit" "kumquat" "lime" "mulberry" "nutmeg" "olive" "peach"
+                        "raisin" "sage" "tamarind" "ube" "vine" "walnut" "xigua"
+                        "yam" "zest" "apricot" "boysenberry" "cantaloupe" "damson"
+                        "entawak" "feijoa" "gooseberry" "huckleberry" "imbe" "jambul"
+                        "kiwano" "longan" "mangosteen" "nance" "otaheite" "pitaya"
+                        "quandong" "rambutan" "soursop" "tamarillo" "ugni" "voavanga"
+                        "wampee" "xoconostle" "yangmei" "zapote" "acerola" "bilberry"
+                        "calamansi" "durian" "etrog" "fingerlime" "gac" "honeyberry"
+                        "ilama" "jabuticaba" "korlan" "lucuma" "mamey" "noni"
+                        "olallieberry" "pawpaw" "quararibea" "rollinia" "salak" "tucuma"
+                        "uvalha" "velvet" "whitecurrant" "xylocarp" "yellowhorn" "ziziphus")
+            printf '%s\n' "${items[@]:0:100}" > "$start_file"
+            {
+                local n=1
+                while IFS= read -r line; do
+                    echo "${n}. ${line}"
+                    n=$((n + 1))
+                done < "$start_file"
+            } > "$goal_file"
+            ;;
+        15)
+            desc="Final Boss x10: flatten 20 objects to YAML"
+            par=25
+            hint1="Same regex, bigger file — prove it scales"
+            hint2="The :%s with \\| alternation handles any number of lines"
+            {
+                local sections=("server" "database" "cache" "auth" "logging" "metrics"
+                               "storage" "queue" "email" "cdn" "proxy" "scheduler"
+                               "worker" "gateway" "monitor" "backup" "search" "notify"
+                               "billing" "audit")
+                local keys=("host" "port" "timeout" "retries" "enabled")
+                local vals=("localhost" "8080" "30" "3" "true")
+                for s in "${sections[@]}"; do
+                    local pairs=""
+                    for i in $(seq 0 4); do
+                        if [ -n "$pairs" ]; then
+                            pairs="${pairs}, ${keys[$i]}: ${vals[$i]}"
+                        else
+                            pairs="${keys[$i]}: ${vals[$i]}"
+                        fi
+                    done
+                    echo "${s}: {${pairs}}"
+                done
+            } > "$start_file"
+            {
+                local sections=("server" "database" "cache" "auth" "logging" "metrics"
+                               "storage" "queue" "email" "cdn" "proxy" "scheduler"
+                               "worker" "gateway" "monitor" "backup" "search" "notify"
+                               "billing" "audit")
+                local keys=("host" "port" "timeout" "retries" "enabled")
+                local vals=("localhost" "8080" "30" "3" "true")
+                for s in "${sections[@]}"; do
+                    echo "${s}:"
+                    for i in $(seq 0 4); do
+                        echo "  ${keys[$i]}: ${vals[$i]}"
+                    done
+                done
+            } > "$goal_file"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    echo "$par|$hint1|$hint2|$desc"
+}
+
 count_keystrokes() {
     local script_file="/tmp/vimgolf_keys_$$"
     local input_file="$1"
@@ -398,21 +711,33 @@ count_keystrokes() {
 
 play_level() {
     local level=$1
+    local mode=${2:-normal}  # "normal" or "hard"
     local level_info
-    level_info=$(setup_level "$level") || { echo "Invalid level"; return 1; }
+
+    if [ "$mode" = "hard" ]; then
+        level_info=$(setup_hard_level "$level") || { echo "Invalid level"; return 1; }
+    else
+        level_info=$(setup_level "$level") || { echo "Invalid level"; return 1; }
+    fi
 
     local par=$(echo "$level_info" | cut -d'|' -f1)
     local hint1=$(echo "$level_info" | cut -d'|' -f2)
     local hint2=$(echo "$level_info" | cut -d'|' -f3)
     local desc=$(echo "$level_info" | cut -d'|' -f4)
-    local start_file="$LEVEL_DIR/start_${level}.txt"
-    local goal_file="$LEVEL_DIR/goal_${level}.txt"
+    local prefix="start"
+    [ "$mode" = "hard" ] && prefix="hard_start"
+    local start_file="$LEVEL_DIR/${prefix}_${level}.txt"
+    local goal_prefix="goal"
+    [ "$mode" = "hard" ] && goal_prefix="hard_goal"
+    local goal_file="$LEVEL_DIR/${goal_prefix}_${level}.txt"
     local hint_level=0
+    local mode_label=""
+    [ "$mode" = "hard" ] && mode_label="${RED}[HARD] ${NC}"
 
     while true; do
         clear
         echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
-        echo -e "${CYAN}  Level $level: ${desc}${NC}"
+        echo -e "${CYAN}  ${mode_label}Level $level: ${desc}${NC}"
         echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
         echo ""
         echo -e "${YELLOW}  Par: $par keystrokes${NC}"
@@ -420,29 +745,59 @@ play_level() {
 
         # Show START and GOAL side by side if terminal is wide enough
         local cols=$(tput cols 2>/dev/null || echo 80)
-        if [ "$cols" -ge 70 ]; then
-            local start_lines goal_lines max_lines
-            start_lines=$(wc -l < "$start_file")
-            goal_lines=$(wc -l < "$goal_file")
-            max_lines=$((start_lines > goal_lines ? start_lines : goal_lines))
+        local start_lines goal_lines max_lines
+        start_lines=$(wc -l < "$start_file")
+        goal_lines=$(wc -l < "$goal_file")
+        max_lines=$((start_lines > goal_lines ? start_lines : goal_lines))
+        local show_max=15  # truncate display for large files
 
-            printf "  ${DIM}%-30s  %-30s${NC}\n" "START:" "GOAL:"
+        if [ "$cols" -ge 70 ]; then
+            printf "  ${DIM}%-30s  %-30s${NC}\n" "START (${start_lines} lines):" "GOAL (${goal_lines} lines):"
             printf "  ${DIM}%-30s  %-30s${NC}\n" "─────────────────────────────" "─────────────────────────────"
 
-            for i in $(seq 1 $max_lines); do
-                local sline gline
-                sline=$(sed -n "${i}p" "$start_file")
-                gline=$(sed -n "${i}p" "$goal_file")
-                printf "  %-30s  ${GREEN}%-30s${NC}\n" "$sline" "$gline"
-            done
+            if [ $max_lines -le $show_max ]; then
+                for i in $(seq 1 $max_lines); do
+                    local sline gline
+                    sline=$(sed -n "${i}p" "$start_file")
+                    gline=$(sed -n "${i}p" "$goal_file")
+                    printf "  %-30s  ${GREEN}%-30s${NC}\n" "$sline" "$gline"
+                done
+            else
+                # Show first 5 and last 5
+                for i in $(seq 1 5); do
+                    local sline gline
+                    sline=$(sed -n "${i}p" "$start_file")
+                    gline=$(sed -n "${i}p" "$goal_file")
+                    printf "  %-30s  ${GREEN}%-30s${NC}\n" "$sline" "$gline"
+                done
+                printf "  ${DIM}%-30s  %-30s${NC}\n" "  ... ($((start_lines - 10)) more)" "  ... ($((goal_lines - 10)) more)"
+                for i in $(seq $((start_lines - 4)) $start_lines); do
+                    local sline gline
+                    sline=$(sed -n "${i}p" "$start_file")
+                    gline=$(sed -n "${i}p" "$goal_file" 2>/dev/null)
+                    printf "  %-30s  ${GREEN}%-30s${NC}\n" "$sline" "$gline"
+                done
+            fi
         else
-            echo -e "${DIM}  START:${NC}"
+            echo -e "${DIM}  START (${start_lines} lines):${NC}"
             echo -e "${DIM}  ─────${NC}"
-            sed 's/^/    /' "$start_file"
+            if [ $start_lines -le $show_max ]; then
+                sed 's/^/    /' "$start_file"
+            else
+                head -5 "$start_file" | sed 's/^/    /'
+                echo -e "    ${DIM}... ($((start_lines - 10)) more lines)${NC}"
+                tail -5 "$start_file" | sed 's/^/    /'
+            fi
             echo ""
-            echo -e "${DIM}  GOAL:${NC}"
+            echo -e "${DIM}  GOAL (${goal_lines} lines):${NC}"
             echo -e "${DIM}  ─────${NC}"
-            sed 's/^/    /' "$goal_file" | while IFS= read -r line; do echo -e "  ${GREEN}${line}${NC}"; done
+            if [ $goal_lines -le $show_max ]; then
+                sed 's/^/    /' "$goal_file" | while IFS= read -r line; do echo -e "  ${GREEN}${line}${NC}"; done
+            else
+                head -5 "$goal_file" | sed 's/^/    /' | while IFS= read -r line; do echo -e "  ${GREEN}${line}${NC}"; done
+                echo -e "    ${DIM}... ($((goal_lines - 10)) more lines)${NC}"
+                tail -5 "$goal_file" | sed 's/^/    /' | while IFS= read -r line; do echo -e "  ${GREEN}${line}${NC}"; done
+            fi
         fi
 
         echo ""
@@ -496,7 +851,9 @@ play_level() {
                 echo -e "  ${YELLOW}○ +${over} over par (${keystrokes}/${par} keystrokes)${NC}"
             fi
 
-            echo "level${level}:${keystrokes}:${par}" >> "$SCORE_FILE"
+            local score_prefix="level"
+            [ "$mode" = "hard" ] && score_prefix="hard"
+            echo "${score_prefix}${level}:${keystrokes}:${par}" >> "$SCORE_FILE"
             echo ""
             echo -e "  ${BOLD}[Enter]${NC} Next level  ${BOLD}[r]${NC} Retry  ${BOLD}[m]${NC} Menu  ${BOLD}[q]${NC} Quit"
             local post_choice=""
@@ -538,9 +895,9 @@ play_level() {
 
 show_scores() {
     clear
-    echo -e "${BOLD}═══════════════════════════════════════${NC}"
+    echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
     echo -e "${CYAN}  SCOREBOARD${NC}"
-    echo -e "${BOLD}═══════════════════════════════════════${NC}"
+    echo -e "${BOLD}═══════════════════════════════════════════════${NC}"
     echo ""
 
     if [ ! -f "$SCORE_FILE" ]; then
@@ -549,12 +906,18 @@ show_scores() {
         local total_strokes=0
         local total_par=0
         local levels_completed=0
+        local hard_strokes=0
+        local hard_par=0
+        local hard_completed=0
 
-        echo -e "  ${DIM}Level  Strokes  Par   Score${NC}"
-        echo -e "  ${DIM}─────  ───────  ───   ─────${NC}"
+        echo -e "  ${DIM}Level  Strokes  Par   Score    Hard   Par   Score${NC}"
+        echo -e "  ${DIM}─────  ───────  ───   ─────    ────   ───   ─────${NC}"
 
         for i in $(seq 1 15); do
             local best=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
+            local hbest=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
+
+            local normal_col=""
             if [ -n "$best" ]; then
                 local lpar=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f3 | head -1)
                 local diff=$((best - lpar))
@@ -566,26 +929,41 @@ show_scores() {
                 else
                     score_str="${YELLOW}+${diff}${NC}"
                 fi
-                printf "  %-6s %-8s %-5s %b\n" "$i" "$best" "$lpar" "$score_str"
+                normal_col=$(printf "%-8s %-5s %b" "$best" "$lpar" "$score_str")
                 total_strokes=$((total_strokes + best))
                 total_par=$((total_par + lpar))
                 levels_completed=$((levels_completed + 1))
+            else
+                normal_col=$(printf "%-8s %-5s %s" "-" "-" " ")
             fi
+
+            local hard_col=""
+            if [ -n "$hbest" ]; then
+                local hpar=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f3 | head -1)
+                local hdiff=$((hbest - hpar))
+                local hscore_str=""
+                if [ $hdiff -lt 0 ]; then
+                    hscore_str="${GREEN}${hdiff}${NC}"
+                elif [ $hdiff -eq 0 ]; then
+                    hscore_str="${CYAN}PAR${NC}"
+                else
+                    hscore_str="${YELLOW}+${hdiff}${NC}"
+                fi
+                hard_col=$(printf "%-6s %-5s %b" "$hbest" "$hpar" "$hscore_str")
+                hard_strokes=$((hard_strokes + hbest))
+                hard_par=$((hard_par + hpar))
+                hard_completed=$((hard_completed + 1))
+            else
+                hard_col=$(printf "%-6s %-5s %s" "-" "-" " ")
+            fi
+
+            printf "  %-6s %b    %b\n" "$i" "$normal_col" "$hard_col"
         done
 
         echo ""
-        echo -e "  ${DIM}─────────────────────────────${NC}"
-        local total_diff=$((total_strokes - total_par))
-        local diff_str=""
-        if [ $total_diff -lt 0 ]; then
-            diff_str="${GREEN}${total_diff}${NC}"
-        elif [ $total_diff -eq 0 ]; then
-            diff_str="${CYAN}EVEN${NC}"
-        else
-            diff_str="${YELLOW}+${total_diff}${NC}"
-        fi
-        printf "  %-6s %-8s %-5s %b\n" "Total" "$total_strokes" "$total_par" "$diff_str"
-        echo -e "  ${DIM}Levels completed: ${levels_completed}/15${NC}"
+        echo -e "  ${DIM}─────────────────────────────────────────────${NC}"
+        printf "  ${DIM}Normal: %d/15 completed${NC}\n" "$levels_completed"
+        printf "  ${DIM}Hard:   %d/15 completed${NC}\n" "$hard_completed"
     fi
 
     echo ""
@@ -625,32 +1003,64 @@ show_key() {
 }
 
 level_select() {
+    local select_mode=${1:-normal}
+
     clear
-    echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
-    echo -e "${CYAN}  SELECT LEVEL${NC}"
-    echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
+    if [ "$select_mode" = "hard" ]; then
+        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
+        echo -e "${RED}  HARD MODE — SELECT LEVEL${NC}"
+        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
+    else
+        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
+        echo -e "${CYAN}  SELECT LEVEL${NC}"
+        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
+    fi
     echo ""
 
     for i in $(seq 1 15); do
         local info
-        info=$(setup_level "$i" 2>/dev/null)
+        if [ "$select_mode" = "hard" ]; then
+            info=$(setup_hard_level "$i" 2>/dev/null)
+        else
+            info=$(setup_level "$i" 2>/dev/null)
+        fi
         local par=$(echo "$info" | cut -d'|' -f1)
-        local desc
-        desc=$(echo "$info" | rev | cut -d'|' -f1 | rev)
+        local desc=$(echo "$info" | cut -d'|' -f4)
 
         local status="  "
-        if [ -f "$SCORE_FILE" ]; then
-            local best=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
-            if [ -n "$best" ]; then
-                if [ "$best" -le "$par" ]; then
-                    status="${GREEN}*${NC}"
-                else
-                    status="${YELLOW}o${NC}"
+        local locked=""
+        if [ "$select_mode" = "hard" ]; then
+            # Check if normal level is completed (unlock requirement)
+            if ! is_level_completed "$i"; then
+                locked="${DIM}[LOCKED]${NC}"
+            elif [ -f "$SCORE_FILE" ]; then
+                local best=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
+                if [ -n "$best" ]; then
+                    if [ "$best" -le "$par" ]; then
+                        status="${GREEN}*${NC}"
+                    else
+                        status="${YELLOW}o${NC}"
+                    fi
+                fi
+            fi
+        else
+            if [ -f "$SCORE_FILE" ]; then
+                local best=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
+                if [ -n "$best" ]; then
+                    if [ "$best" -le "$par" ]; then
+                        status="${GREEN}*${NC}"
+                    else
+                        status="${YELLOW}o${NC}"
+                    fi
                 fi
             fi
         fi
 
-        printf "  %b %2d. %-40s ${DIM}(par %d)${NC}\n" "$status" "$i" "$desc" "$par"
+        if [ -n "$locked" ]; then
+            printf "  %b %2d. ${DIM}%-40s${NC} %b\n" "  " "$i" "$desc" "$locked"
+        else
+            printf "  %b %2d. %-40s ${DIM}(par %d)${NC}\n" "$status" "$i" "$desc" "$par"
+        fi
     done
 
     echo ""
@@ -659,9 +1069,19 @@ level_select() {
 
     case "$choice" in
         [1-9]|1[0-5])
+            if [ "$select_mode" = "hard" ] && ! is_level_completed "$choice"; then
+                echo -e "  ${RED}Complete normal level $choice first to unlock!${NC}"
+                sleep 2
+                return
+            fi
             local lvl=$choice
             while [ "$lvl" -le 15 ]; do
-                play_level "$lvl"
+                if [ "$select_mode" = "hard" ] && ! is_level_completed "$lvl"; then
+                    echo -e "  ${RED}Level $lvl locked — complete normal mode first${NC}"
+                    sleep 2
+                    return
+                fi
+                play_level "$lvl" "$select_mode"
                 local ret=$?
                 case $ret in
                     0) lvl=$((lvl + 1)) ;;  # next level
@@ -681,24 +1101,27 @@ main_menu() {
         clear
         print_banner
         echo -e "  ${BOLD}[p]${NC} Play (sequential)    ${BOLD}[l]${NC} Level select"
-        echo -e "  ${BOLD}[s]${NC} Scoreboard           ${BOLD}[k]${NC} Solution key"
-        echo -e "  ${BOLD}[r]${NC} Reset scores         ${BOLD}[q]${NC} Quit"
+        echo -e "  ${BOLD}[h]${NC} ${RED}Hard mode${NC}            ${BOLD}[s]${NC} Scoreboard"
+        echo -e "  ${BOLD}[k]${NC} Solution key         ${BOLD}[r]${NC} Reset scores"
+        echo -e "  ${BOLD}[q]${NC} Quit"
         echo ""
         echo -e "  ${DIM}Rules: Transform START into GOAL using vim.${NC}"
         echo -e "  ${DIM}Your keystrokes are counted. Beat par to earn *${NC}"
+        echo -e "  ${DIM}Hard mode: same concept at 50-100x scale. Unlocked per level.${NC}"
         echo ""
 
         read -rsn1 choice
         case "$choice" in
             p|P)
                 for i in $(seq 1 15); do
-                    play_level "$i"
+                    play_level "$i" normal
                     local ret=$?
                     [ $ret -eq 1 ] && break
                     [ $ret -eq 3 ] && break
                 done
                 ;;
-            l|L) level_select ;;
+            l|L) level_select normal ;;
+            h|H) level_select hard ;;
             s|S) show_scores ;;
             k|K) show_key ;;
             r|R)
