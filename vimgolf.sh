@@ -1068,35 +1068,39 @@ level_select() {
 
         local status=" "
         local locked=""
+        local best=""
+        local score_str=""
         if [ "$select_mode" = "hard" ]; then
             # Check if normal level is completed (unlock requirement)
             if ! is_level_completed "$i"; then
                 locked="${DIM}[LOCKED]${NC}"
             elif [ -f "$SCORE_FILE" ]; then
-                local best=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
-                if [ -n "$best" ]; then
-                    if [ "$best" -le "$par" ]; then
-                        status="${GREEN}*${NC}"
-                    else
-                        status="${YELLOW}o${NC}"
-                    fi
-                fi
+                best=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
             fi
         else
             if [ -f "$SCORE_FILE" ]; then
-                local best=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
-                if [ -n "$best" ]; then
-                    if [ "$best" -le "$par" ]; then
-                        status="${GREEN}*${NC}"
-                    else
-                        status="${YELLOW}o${NC}"
-                    fi
-                fi
+                best=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
+            fi
+        fi
+
+        if [ -n "$best" ]; then
+            local diff=$((best - par))
+            if [ "$diff" -lt 0 ]; then
+                status="${GREEN}*${NC}"
+                score_str="${GREEN}${best}/${par} (${diff})${NC}"
+            elif [ "$diff" -eq 0 ]; then
+                status="${GREEN}*${NC}"
+                score_str="${CYAN}${best}/${par} (PAR)${NC}"
+            else
+                status="${YELLOW}o${NC}"
+                score_str="${YELLOW}${best}/${par} (+${diff})${NC}"
             fi
         fi
 
         if [ -n "$locked" ]; then
             printf "  %b %2d. ${DIM}%-40s${NC} %b\n" "$status" "$i" "$desc" "$locked"
+        elif [ -n "$score_str" ]; then
+            printf "  %b %2d. %-40s ${DIM}best:${NC} %b\n" "$status" "$i" "$desc" "$score_str"
         else
             printf "  %b %2d. %-40s ${DIM}(par %d)${NC}\n" "$status" "$i" "$desc" "$par"
         fi
