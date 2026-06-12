@@ -1066,7 +1066,7 @@ level_select() {
         local par=$(echo "$info" | cut -d'|' -f1)
         local desc=$(echo "$info" | cut -d'|' -f4)
 
-        local status="  "
+        local status=" "
         local locked=""
         if [ "$select_mode" = "hard" ]; then
             # Check if normal level is completed (unlock requirement)
@@ -1096,7 +1096,7 @@ level_select() {
         fi
 
         if [ -n "$locked" ]; then
-            printf "  %b %2d. ${DIM}%-40s${NC} %b\n" "  " "$i" "$desc" "$locked"
+            printf "  %b %2d. ${DIM}%-40s${NC} %b\n" "$status" "$i" "$desc" "$locked"
         else
             printf "  %b %2d. %-40s ${DIM}(par %d)${NC}\n" "$status" "$i" "$desc" "$par"
         fi
