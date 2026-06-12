@@ -1,0 +1,17 @@
+desc: Comment out every line with '# '
+category: manual
+par: 7
+hint1: Visual block mode can insert on many lines at once
+hint2: Ctrl-V to select a column, I to insert before it, Esc to apply to all
+solution: <C-V>jjI# <Esc>
+note: <C-V> starts visual block; jj extends down; I inserts at the start of every
+note: selected line; type '# ', then <Esc> applies it to all of them.
+--- START ---
+alpha
+beta
+gamma
+--- GOAL ---
+# alpha
+# beta
+# gamma
+--- END ---

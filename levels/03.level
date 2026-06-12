@@ -1,0 +1,20 @@
+desc: Reverse the order of these lines
+category: ex
+par: 8
+hint1: Think about move commands
+hint2: :global can execute a move on every line — what happens if you move each to line 0?
+solution: :g/^/m0<CR>
+note: :g/^/ runs on every line; m0 moves each to the top, reversing the order.
+--- START ---
+first
+second
+third
+fourth
+fifth
+--- GOAL ---
+fifth
+fourth
+third
+second
+first
+--- END ---

@@ -1,0 +1,13 @@
+desc: Fix the transposed letters
+category: manual
+par: 2
+hint1: Two keystrokes can swap adjacent characters
+hint2: Delete one character and put it back after the next
+solution: xp
+note: x deletes the character under the cursor; p puts it back after the next one —
+note: the classic two-key transpose fix.
+--- START ---
+hte cat
+--- GOAL ---
+the cat
+--- END ---

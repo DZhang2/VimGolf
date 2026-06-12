@@ -1,0 +1,21 @@
+desc: Sort lines and remove duplicates
+category: ex
+par: 7
+hint1: Ex commands can sort
+hint2: :sort has a flag that removes duplicates in one shot
+solution: :sor u<CR>
+note: :sort with the u flag sorts all lines and drops duplicates in one pass.
+--- START ---
+cherry
+apple
+banana
+apple
+date
+cherry
+banana
+--- GOAL ---
+apple
+banana
+cherry
+date
+--- END ---

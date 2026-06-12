@@ -1,0 +1,17 @@
+desc: Greet each name using a macro
+category: macro
+par: 19
+hint1: Record the edit for one line, then replay it
+hint2: qa records to register a; @a replays; a count replays multiple times
+solution: qaIHello, <Esc>A!<Esc>jq2@a
+note: qa records macro 'a': I inserts 'Hello, ' at line start, <Esc>; A appends '!',
+note: <Esc>; j moves to the next line; q stops. 2@a replays it on the last two lines.
+--- START ---
+Alice
+Bob
+Carol
+--- GOAL ---
+Hello, Alice!
+Hello, Bob!
+Hello, Carol!
+--- END ---

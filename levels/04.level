@@ -1,0 +1,20 @@
+desc: Surround each word with quotes
+category: ex
+par: 11
+hint1: Macros or substitution?
+hint2: In :s replacement, & refers to the entire match — .* grabs the whole line
+solution: :%s/.*/"&"<CR>
+note: .* matches the whole line; & in the replacement re-inserts it, wrapped in quotes.
+--- START ---
+apple
+banana
+cherry
+date
+elderberry
+--- GOAL ---
+"apple"
+"banana"
+"cherry"
+"date"
+"elderberry"
+--- END ---

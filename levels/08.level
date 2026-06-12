@@ -1,0 +1,19 @@
+desc: Convert this CSV to a markdown table
+category: ex
+par: 30
+hint1: Substitution + manual header separator
+hint2: Replace commas with ' | ', add leading/trailing pipes, then type the --- row
+solution: :%s/,/ | /g<CR> :%s/^/| <CR> :%s/$/ |<CR> + manual sep
+note: Turn commas into ' | ', add a leading and trailing pipe, then hand-type the |---| row.
+--- START ---
+name,age,city
+Alice,30,NYC
+Bob,25,LA
+Carol,35,SF
+--- GOAL ---
+| name | age | city |
+|------|-----|------|
+| Alice | 30 | NYC |
+| Bob | 25 | LA |
+| Carol | 35 | SF |
+--- END ---

@@ -1,0 +1,26 @@
+desc: The Final Boss: flatten to valid YAML
+category: ex
+par: 25
+hint1: Everything you've learned — substitution, macros, structure
+hint2: Replace delimiters ({ and ,) with \r+indent using \|, then strip closing braces
+solution: :%s/ {\|, /\r  /g|%s/}//<CR>
+note: Replace ' {' or ', ' (\| = OR) with a newline + 2-space indent (\r  ),
+note: then a second :%s strips the leftover closing braces.
+--- START ---
+server: {host: localhost, port: 8080, debug: true}
+database: {host: db.local, port: 5432, name: myapp}
+cache: {host: redis.local, port: 6379, ttl: 300}
+--- GOAL ---
+server:
+  host: localhost
+  port: 8080
+  debug: true
+database:
+  host: db.local
+  port: 5432
+  name: myapp
+cache:
+  host: redis.local
+  port: 6379
+  ttl: 300
+--- END ---

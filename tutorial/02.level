@@ -1,0 +1,14 @@
+desc: Join these three lines into one
+category: manual
+par: 2
+hint1: One command joins lines with a count
+hint2: J joins the next line up; a count joins several at once
+solution: 3J
+note: 3J joins the current line with the next two (J inserts a space between each).
+--- START ---
+one
+two
+three
+--- GOAL ---
+one two three
+--- END ---

@@ -1,0 +1,25 @@
+desc: Number each line (1. 2. 3. etc)
+category: manual
+par: 16
+hint1: A put command with expression, or a macro
+hint2: g Ctrl-A in visual block mode creates sequential numbers starting from a base
+solution: :%s/^/0. <CR>gg<C-V>Gg<C-A>
+note: Prefix every line with '0. '; select the 0 column with <C-V>, then g<C-A>
+note: increments each selected number sequentially (1, 2, 3, ...).
+--- START ---
+apple
+banana
+cherry
+date
+elderberry
+fig
+grape
+--- GOAL ---
+1. apple
+2. banana
+3. cherry
+4. date
+5. elderberry
+6. fig
+7. grape
+--- END ---

@@ -1,0 +1,12 @@
+desc: Uppercase the second word
+category: motion
+par: 5
+hint1: Move to the word, then change its case
+hint2: gU is the uppercase operator; pair it with the inner-word text object
+solution: wgUiw
+note: w moves to the next word; gUiw uppercases the inner-word (iw) text object.
+--- START ---
+the word here
+--- GOAL ---
+the WORD here
+--- END ---

@@ -1,0 +1,13 @@
+desc: Delete the parenthesized argument list
+category: motion
+par: 4
+hint1: The % motion jumps between matching brackets
+hint2: Delete from the opening paren to its match in one operation
+solution: f(d%
+note: f( jumps to the open paren; % matches to the close; d% deletes from one bracket
+note: to the other, including both.
+--- START ---
+call(a, b, c) end
+--- GOAL ---
+call end
+--- END ---

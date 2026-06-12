@@ -1,0 +1,23 @@
+desc: Convert flat list to JSON array
+category: ex
+par: 24
+hint1: Macros + manual structure
+hint2: Substitution wraps all lines with indent+quotes+comma, then fix first/last manually
+solution: :%s/.*/  "&",<CR>$xo]<Esc>ggO[<Esc>
+note: Wrap each line as '  "line",'; $x removes the trailing comma on the last line;
+note: o]<Esc> adds the closing bracket, ggO[<Esc> adds the opening one at the top.
+--- START ---
+red
+green
+blue
+yellow
+purple
+--- GOAL ---
+[
+  "red",
+  "green",
+  "blue",
+  "yellow",
+  "purple"
+]
+--- END ---

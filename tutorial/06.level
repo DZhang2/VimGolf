@@ -1,0 +1,12 @@
+desc: Keep only the first sentence
+category: motion
+par: 4
+hint1: Jump to the period, then delete to the end of the line
+hint2: f finds a character; D deletes from the cursor to end of line
+solution: f.lD
+note: f. jumps to the period; l steps past it onto the space; D deletes to end of line.
+--- START ---
+keep this. delete this.
+--- GOAL ---
+keep this.
+--- END ---

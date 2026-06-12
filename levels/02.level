@@ -1,0 +1,16 @@
+desc: Change 'foo' to 'bar' on every line
+category: ex
+par: 12
+hint1: Global substitution is your friend
+hint2: :%s — no g flag needed when there's one match per line
+solution: :%s/foo/bar<CR>
+note: :%s substitutes on every line (%); swaps the first 'foo' per line for 'bar'.
+--- START ---
+the foo is here
+foo again
+one more foo
+--- GOAL ---
+the bar is here
+bar again
+one more bar
+--- END ---

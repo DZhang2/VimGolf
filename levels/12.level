@@ -1,0 +1,21 @@
+desc: Remove blank lines
+category: ex
+par: 7
+hint1: Two substitutions or one clever command
+hint2: :v matches lines that DON'T contain a pattern — delete those lines
+solution: :v/./d<CR>
+note: :v/./d deletes every line with no character at all — i.e. the blank lines.
+--- START ---
+hello
+
+world
+
+foo
+
+bar
+--- GOAL ---
+hello
+world
+foo
+bar
+--- END ---

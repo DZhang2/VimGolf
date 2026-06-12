@@ -1,0 +1,13 @@
+desc: Delete the function arguments
+category: motion
+par: 5
+hint1: There's a text object for "inside parentheses"
+hint2: Jump to the paren first, then operate on the inner-bracket text object
+solution: f(di(
+note: f( jumps to the opening paren; di( deletes everything inside the parentheses
+note: (the "inside ()" text object), leaving an empty call().
+--- START ---
+result = compute(a, b, c)
+--- GOAL ---
+result = compute()
+--- END ---

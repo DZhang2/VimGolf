@@ -1,0 +1,15 @@
+desc: Make four copies of this line
+category: manual
+par: 4
+hint1: Yank once, then paste with a count
+hint2: yy yanks the line; p pastes it — a count pastes multiple copies
+solution: yy3p
+note: yy yanks the line; 3p pastes it three times below, making four copies total.
+--- START ---
+duplicate me
+--- GOAL ---
+duplicate me
+duplicate me
+duplicate me
+duplicate me
+--- END ---

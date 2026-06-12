@@ -1,0 +1,15 @@
+desc: Delete the line containing 'delete'
+category: search
+par: 10
+hint1: Search jumps the cursor straight to a match
+hint2: / searches forward; once there, delete the whole line
+solution: /delete<CR>dd
+note: /delete<CR> searches for the word and jumps the cursor to it; dd deletes that line.
+--- START ---
+keep
+delete me
+keep
+--- GOAL ---
+keep
+keep
+--- END ---

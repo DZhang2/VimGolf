@@ -8,6 +8,37 @@ SCORE_FILE="/tmp/vimgolf_scores"
 LEVEL_DIR="/tmp/vimgolf_levels"
 mkdir -p "$LEVEL_DIR"
 
+# Level definitions live in data files (one per level) next to this script.
+# This keeps the game logic separate from content so new levels can be added
+# by dropping in a NN.level file — no code changes required.
+#   tutorial/  — beginner track: motions, text objects, visual block, macros
+#   levels/    — normal track: powerful Ex commands (:s, :g, :sort, filters)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LEVELS_DATA_DIR="$SCRIPT_DIR/levels"
+TUTORIAL_DATA_DIR="$SCRIPT_DIR/tutorial"
+
+# Map a mode name to the directory holding its .level files.
+mode_data_dir() {
+    case "$1" in
+        tutorial) echo "$TUTORIAL_DATA_DIR" ;;
+        *)        echo "$LEVELS_DATA_DIR" ;;
+    esac
+}
+
+# Count of .level files in a directory (defaults if the dir is missing).
+count_data_levels() {
+    local n
+    n=$(ls "$1"/[0-9][0-9].level 2>/dev/null | wc -l | tr -d ' ')
+    { [ -z "$n" ] || [ "$n" -eq 0 ]; } && n=0
+    echo "$n"
+}
+
+TOTAL_LEVELS=$(count_data_levels "$LEVELS_DATA_DIR");      [ "$TOTAL_LEVELS" -eq 0 ] && TOTAL_LEVELS=15
+TOTAL_TUTORIAL_LEVELS=$(count_data_levels "$TUTORIAL_DATA_DIR"); [ "$TOTAL_TUTORIAL_LEVELS" -eq 0 ] && TOTAL_TUTORIAL_LEVELS=15
+
+# Hard mode is the programmatically-scaled variant of the normal levels.
+TOTAL_HARD_LEVELS=15
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -26,329 +57,43 @@ print_banner() {
     echo ""
 }
 
+# Parse a level data file (<dir>/NN.level) for the given level number.
+# Args: <level> [mode]   (mode: normal | tutorial; defaults to normal)
+# Writes the START block to start_file and GOAL block to goal_file, then
+# echoes "par|hint1|hint2|desc" on stdout (matching the legacy interface).
+# Returns 1 if the data file is missing.
 setup_level() {
     local level=$1
-    local start_file="$LEVEL_DIR/start_${level}.txt"
-    local goal_file="$LEVEL_DIR/goal_${level}.txt"
-    local par=""
-    local hint=""
-    local desc=""
+    local mode=${2:-normal}
+    local data_dir
+    data_dir=$(mode_data_dir "$mode")
+    local start_file="$LEVEL_DIR/${mode}_start_${level}.txt"
+    local goal_file="$LEVEL_DIR/${mode}_goal_${level}.txt"
+    local data_file
+    data_file=$(printf '%s/%02d.level' "$data_dir" "$level")
+    [ -f "$data_file" ] || return 1
 
-    case $level in
-        1)
-            desc="Delete the middle line"
-            par=3
-            hint1="Think: go to line, delete it"
-            hint2="j moves down, dd deletes a whole line"
-            cat > "$start_file" << 'EOF'
-hello
-delete this line
-world
-EOF
-            cat > "$goal_file" << 'EOF'
-hello
-world
-EOF
-            ;;
-        2)
-            desc="Change 'foo' to 'bar' on every line"
-            par=12
-            hint1="Global substitution is your friend"
-            hint2=":%s — no g flag needed when there's one match per line"
-            cat > "$start_file" << 'EOF'
-the foo is here
-foo again
-one more foo
-EOF
-            cat > "$goal_file" << 'EOF'
-the bar is here
-bar again
-one more bar
-EOF
-            ;;
-        3)
-            desc="Reverse the order of these lines"
-            par=8
-            hint1="Think about move commands"
-            hint2=":global can execute a move on every line — what happens if you move each to line 0?"
-            cat > "$start_file" << 'EOF'
-first
-second
-third
-fourth
-fifth
-EOF
-            cat > "$goal_file" << 'EOF'
-fifth
-fourth
-third
-second
-first
-EOF
-            ;;
-        4)
-            desc="Surround each word with quotes"
-            par=11
-            hint1="Macros or substitution?"
-            hint2="In :s replacement, & refers to the entire match — .* grabs the whole line"
-            cat > "$start_file" << 'EOF'
-apple
-banana
-cherry
-date
-elderberry
-EOF
-            cat > "$goal_file" << 'EOF'
-"apple"
-"banana"
-"cherry"
-"date"
-"elderberry"
-EOF
-            ;;
-        5)
-            desc="Convert camelCase to snake_case"
-            par=16
-            hint1="Substitution with regex"
-            hint2="\\u matches uppercase in a pattern, \\l lowercases in replacement"
-            cat > "$start_file" << 'EOF'
-camelCase
-getUserName
-processItem
-doStuff
-valueOf
-EOF
-            cat > "$goal_file" << 'EOF'
-camel_case
-get_user_name
-process_item
-do_stuff
-value_of
-EOF
-            ;;
-        6)
-            desc="Sort lines and remove duplicates"
-            par=7
-            hint1="Ex commands can sort"
-            hint2=":sort has a flag that removes duplicates in one shot"
-            cat > "$start_file" << 'EOF'
-cherry
-apple
-banana
-apple
-date
-cherry
-banana
-EOF
-            cat > "$goal_file" << 'EOF'
-apple
-banana
-cherry
-date
-EOF
-            ;;
-        7)
-            desc="Increment all numbers by 1"
-            par=10
-            hint1="Ctrl-A increments numbers in normal mode"
-            hint2="Record a macro: Ctrl-A finds the next number on the line and increments it"
-            cat > "$start_file" << 'EOF'
-item 1: value 10
-item 2: value 20
-item 3: value 30
-item 4: value 40
-item 5: value 50
-EOF
-            cat > "$goal_file" << 'EOF'
-item 2: value 11
-item 3: value 21
-item 4: value 31
-item 5: value 41
-item 6: value 51
-EOF
-            ;;
-        8)
-            desc="Convert this CSV to a markdown table"
-            par=30
-            hint1="Substitution + manual header separator"
-            hint2="Replace commas with ' | ', add leading/trailing pipes, then type the --- row"
-            cat > "$start_file" << 'EOF'
-name,age,city
-Alice,30,NYC
-Bob,25,LA
-Carol,35,SF
-EOF
-            cat > "$goal_file" << 'EOF'
-| name | age | city |
-|------|-----|------|
-| Alice | 30 | NYC |
-| Bob | 25 | LA |
-| Carol | 35 | SF |
-EOF
-            ;;
-        9)
-            desc="Align the equals signs"
-            par=20
-            hint1="Think column-wise or dot command"
-            hint2="f finds =, insert a space before it, then . repeats — skip already-aligned lines"
-            cat > "$start_file" << 'EOF'
-x = 1
-foo = 2
-hello = 3
-ab = 4
-world = 5
-EOF
-            cat > "$goal_file" << 'EOF'
-x     = 1
-foo   = 2
-hello = 3
-ab    = 4
-world = 5
-EOF
-            ;;
-        10)
-            desc="Extract function names into a list"
-            par=20
-            hint1="Global command + delete what you don't need"
-            hint2=":v (inverse global) deletes non-matching lines; :%norm applies keys to every line"
-            cat > "$start_file" << 'EOF'
-def initialize(config):
-    pass
-
-def process_data(input, output):
-    pass
-
-def validate(schema):
-    pass
-
-def cleanup():
-    pass
-EOF
-            cat > "$goal_file" << 'EOF'
-initialize
-process_data
-validate
-cleanup
-EOF
-            ;;
-        11)
-            desc="Swap the two columns"
-            par=27
-            hint1="Filter through an external command"
-            hint2=":%! pipes the buffer through a shell command — awk can reorder fields"
-            cat > "$start_file" << 'EOF'
-Alice   100
-Bob     200
-Carol   300
-Dave    400
-Eve     500
-EOF
-            cat > "$goal_file" << 'EOF'
-100   Alice
-200   Bob
-300   Carol
-400   Dave
-500   Eve
-EOF
-            ;;
-        12)
-            desc="Remove blank lines"
-            par=7
-            hint1="Two substitutions or one clever command"
-            hint2=":v matches lines that DON'T contain a pattern — delete those lines"
-            cat > "$start_file" << 'EOF'
-hello
-
-world
-
-foo
-
-bar
-EOF
-            cat > "$goal_file" << 'EOF'
-hello
-world
-foo
-bar
-EOF
-            ;;
-        13)
-            desc="Convert flat list to JSON array"
-            par=24
-            hint1="Macros + manual structure"
-            hint2="Substitution wraps all lines with indent+quotes+comma, then fix first/last manually"
-            cat > "$start_file" << 'EOF'
-red
-green
-blue
-yellow
-purple
-EOF
-            cat > "$goal_file" << 'EOF'
-[
-  "red",
-  "green",
-  "blue",
-  "yellow",
-  "purple"
-]
-EOF
-            ;;
-        14)
-            desc="Number each line (1. 2. 3. etc)"
-            par=16
-            hint1="A put command with expression, or a macro"
-            hint2="g Ctrl-A in visual block mode creates sequential numbers starting from a base"
-            cat > "$start_file" << 'EOF'
-apple
-banana
-cherry
-date
-elderberry
-fig
-grape
-EOF
-            cat > "$goal_file" << 'EOF'
-1. apple
-2. banana
-3. cherry
-4. date
-5. elderberry
-6. fig
-7. grape
-EOF
-            ;;
-        15)
-            desc="The Final Boss: flatten to valid YAML"
-            par=25
-            hint1="Everything you've learned — substitution, macros, structure"
-            hint2="Replace delimiters ({ and ,) with \\r+indent using \\|, then strip closing braces"
-            cat > "$start_file" << 'EOF'
-server: {host: localhost, port: 8080, debug: true}
-database: {host: db.local, port: 5432, name: myapp}
-cache: {host: redis.local, port: 6379, ttl: 300}
-EOF
-            cat > "$goal_file" << 'EOF'
-server:
-  host: localhost
-  port: 8080
-  debug: true
-database:
-  host: db.local
-  port: 5432
-  name: myapp
-cache:
-  host: redis.local
-  port: 6379
-  ttl: 300
-EOF
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-
-    echo "$par|$hint1|$hint2|$desc"
+    # awk splits the file into the metadata header and the START/GOAL bodies,
+    # writing the two bodies straight to their target files (preserving every
+    # space) and printing the metadata fields back for the caller to capture.
+    awk -v sf="$start_file" -v gf="$goal_file" '
+        BEGIN { section = "meta"; par = ""; h1 = ""; h2 = ""; desc = "" }
+        /^--- START ---$/ { section = "start"; next }
+        /^--- GOAL ---$/  { section = "goal";  next }
+        /^--- END ---$/   { section = "done";  next }
+        section == "meta" {
+            key = $0; sub(/:.*/, "", key)
+            val = $0; sub(/^[^:]*: ?/, "", val)
+            if (key == "par")   par = val
+            else if (key == "hint1") h1 = val
+            else if (key == "hint2") h2 = val
+            else if (key == "desc")  desc = val
+            next
+        }
+        section == "start" { print > sf; next }
+        section == "goal"  { print > gf; next }
+        END { printf "%s|%s|%s|%s\n", par, h1, h2, desc }
+    ' "$data_file"
 }
 
 is_level_completed() {
@@ -712,30 +457,55 @@ count_keystrokes() {
     echo "$keystrokes|$output_file"
 }
 
+# Render a single line with whitespace made visible (spaces -> ·) and pad it
+# to `width` display columns. Padding is added manually from the raw character
+# count so it stays correct even though · is a multibyte glyph.
+fmt_line() {
+    local raw="$1" width="$2"
+    local len=${#raw}
+    local vis=${raw// /·}
+    local pad=$((width - len))
+    [ "$pad" -lt 0 ] && pad=0
+    printf '%s%*s' "$vis" "$pad" ""
+}
+
+# Print lines from stdin with a 4-space display indent, whitespace made
+# visible, and an optional color applied to the content.
+print_vis() {
+    local color="$1"
+    while IFS= read -r line; do
+        printf "    %b%s%b\n" "$color" "${line// /·}" "$NC"
+    done
+}
+
 play_level() {
     local level=$1
-    local mode=${2:-normal}  # "normal" or "hard"
+    local mode=${2:-normal}  # "normal", "hard", or "tutorial"
     local level_info
 
     if [ "$mode" = "hard" ]; then
         level_info=$(setup_hard_level "$level") || { echo "Invalid level"; return 1; }
     else
-        level_info=$(setup_level "$level") || { echo "Invalid level"; return 1; }
+        level_info=$(setup_level "$level" "$mode") || { echo "Invalid level"; return 1; }
     fi
 
     local par=$(echo "$level_info" | cut -d'|' -f1)
     local hint1=$(echo "$level_info" | cut -d'|' -f2)
     local hint2=$(echo "$level_info" | cut -d'|' -f3)
     local desc=$(echo "$level_info" | cut -d'|' -f4)
-    local prefix="start"
-    [ "$mode" = "hard" ] && prefix="hard_start"
-    local start_file="$LEVEL_DIR/${prefix}_${level}.txt"
-    local goal_prefix="goal"
-    [ "$mode" = "hard" ] && goal_prefix="hard_goal"
-    local goal_file="$LEVEL_DIR/${goal_prefix}_${level}.txt"
+    # File paths must match what setup_level / setup_hard_level wrote.
+    local start_file goal_file
+    if [ "$mode" = "hard" ]; then
+        start_file="$LEVEL_DIR/hard_start_${level}.txt"
+        goal_file="$LEVEL_DIR/hard_goal_${level}.txt"
+    else
+        start_file="$LEVEL_DIR/${mode}_start_${level}.txt"
+        goal_file="$LEVEL_DIR/${mode}_goal_${level}.txt"
+    fi
     local hint_level=0
     local mode_label=""
     [ "$mode" = "hard" ] && mode_label="${RED}[HARD] ${NC}"
+    [ "$mode" = "tutorial" ] && mode_label="${CYAN}[TUTORIAL] ${NC}"
 
     while true; do
         clear
@@ -746,24 +516,34 @@ play_level() {
         echo -e "${YELLOW}  Par: $par keystrokes${NC}"
         echo ""
 
-        # Show START and GOAL side by side if terminal is wide enough
+        # Show START and GOAL side by side only if the terminal is wide enough
+        # AND the lines are short enough to fit in columns without wrapping.
+        # Long lines (e.g. level 15) fall back to a stacked layout instead.
         local cols=$(tput cols 2>/dev/null || echo 80)
-        local start_lines goal_lines max_lines
+        local start_lines goal_lines max_lines max_len
         start_lines=$(wc -l < "$start_file")
         goal_lines=$(wc -l < "$goal_file")
         max_lines=$((start_lines > goal_lines ? start_lines : goal_lines))
+        max_len=$(awk '{ if (length > m) m = length } END { print m + 0 }' "$start_file" "$goal_file")
         local show_max=15  # truncate display for large files
 
-        if [ "$cols" -ge 70 ]; then
-            printf "  ${DIM}%-30s  %-30s${NC}\n" "START (${start_lines} lines):" "GOAL (${goal_lines} lines):"
-            printf "  ${DIM}%-30s  %-30s${NC}\n" "─────────────────────────────" "─────────────────────────────"
+        # Column width adapts to the content; side-by-side is only used when
+        # two such columns actually fit within the terminal width.
+        local col_width=$max_len
+        [ "$col_width" -lt 20 ] && col_width=20
+
+        if [ "$cols" -ge 70 ] && [ $((2 * col_width + 6)) -le "$cols" ]; then
+            local dashes
+            dashes=$(printf '%*s' "$col_width" '' | tr ' ' '─')
+            printf "  ${DIM}%-${col_width}s  %-${col_width}s${NC}\n" "START (${start_lines} lines):" "GOAL (${goal_lines} lines):"
+            printf "  ${DIM}%s  %s${NC}\n" "$dashes" "$dashes"
 
             if [ $max_lines -le $show_max ]; then
                 for i in $(seq 1 $max_lines); do
                     local sline gline
                     sline=$(sed -n "${i}p" "$start_file")
                     gline=$(sed -n "${i}p" "$goal_file")
-                    printf "  %-30s  ${GREEN}%-30s${NC}\n" "$sline" "$gline"
+                    printf "  %s  ${GREEN}%s${NC}\n" "$(fmt_line "$sline" "$col_width")" "$(fmt_line "$gline" "$col_width")"
                 done
             else
                 # Show first 5 and last 5
@@ -771,38 +551,40 @@ play_level() {
                     local sline gline
                     sline=$(sed -n "${i}p" "$start_file")
                     gline=$(sed -n "${i}p" "$goal_file")
-                    printf "  %-30s  ${GREEN}%-30s${NC}\n" "$sline" "$gline"
+                    printf "  %s  ${GREEN}%s${NC}\n" "$(fmt_line "$sline" "$col_width")" "$(fmt_line "$gline" "$col_width")"
                 done
-                printf "  ${DIM}%-30s  %-30s${NC}\n" "  ... ($((start_lines - 10)) more)" "  ... ($((goal_lines - 10)) more)"
+                printf "  ${DIM}%-${col_width}s  %-${col_width}s${NC}\n" "  ... ($((start_lines - 10)) more)" "  ... ($((goal_lines - 10)) more)"
                 for i in $(seq $((start_lines - 4)) $start_lines); do
                     local sline gline
                     sline=$(sed -n "${i}p" "$start_file")
                     gline=$(sed -n "${i}p" "$goal_file" 2>/dev/null)
-                    printf "  %-30s  ${GREEN}%-30s${NC}\n" "$sline" "$gline"
+                    printf "  %s  ${GREEN}%s${NC}\n" "$(fmt_line "$sline" "$col_width")" "$(fmt_line "$gline" "$col_width")"
                 done
             fi
         else
             echo -e "${DIM}  START (${start_lines} lines):${NC}"
             echo -e "${DIM}  ─────${NC}"
             if [ $start_lines -le $show_max ]; then
-                sed 's/^/    /' "$start_file"
+                print_vis "" < "$start_file"
             else
-                head -5 "$start_file" | sed 's/^/    /'
+                head -5 "$start_file" | print_vis ""
                 echo -e "    ${DIM}... ($((start_lines - 10)) more lines)${NC}"
-                tail -5 "$start_file" | sed 's/^/    /'
+                tail -5 "$start_file" | print_vis ""
             fi
             echo ""
             echo -e "${DIM}  GOAL (${goal_lines} lines):${NC}"
             echo -e "${DIM}  ─────${NC}"
             if [ $goal_lines -le $show_max ]; then
-                sed 's/^/    /' "$goal_file" | while IFS= read -r line; do echo -e "  ${GREEN}${line}${NC}"; done
+                print_vis "$GREEN" < "$goal_file"
             else
-                head -5 "$goal_file" | sed 's/^/    /' | while IFS= read -r line; do echo -e "  ${GREEN}${line}${NC}"; done
+                head -5 "$goal_file" | print_vis "$GREEN"
                 echo -e "    ${DIM}... ($((goal_lines - 10)) more lines)${NC}"
-                tail -5 "$goal_file" | sed 's/^/    /' | while IFS= read -r line; do echo -e "  ${GREEN}${line}${NC}"; done
+                tail -5 "$goal_file" | print_vis "$GREEN"
             fi
         fi
 
+        echo ""
+        echo -e "  ${DIM}( · = a space )${NC}"
         echo ""
         if [ $hint_level -ge 1 ]; then
             echo -e "  ${YELLOW}Hint 1: ${hint1}${NC}"
@@ -856,6 +638,7 @@ play_level() {
 
             local score_prefix="level"
             [ "$mode" = "hard" ] && score_prefix="hard"
+            [ "$mode" = "tutorial" ] && score_prefix="tut"
             echo "${score_prefix}${level}:${keystrokes}:${par}" >> "$SCORE_FILE"
             echo ""
             echo -e "  ${BOLD}[Enter]${NC} Next level  ${BOLD}[r]${NC} Retry  ${BOLD}[m]${NC} Menu  ${BOLD}[q]${NC} Quit"
@@ -879,7 +662,7 @@ play_level() {
             echo -e "  ${RED}✗ Output doesn't match goal${NC}"
             echo ""
             echo -e "  ${DIM}Your output:${NC}"
-            sed 's/^/    /' "$output_file"
+            print_vis "" < "$output_file"
             echo ""
             echo -e "  ${DIM}Diff (< yours, > expected):${NC}"
             diff "$output_file" "$goal_file" 2>/dev/null | sed 's/^/    /' || true
@@ -916,9 +699,12 @@ show_scores() {
         echo -e "  ${DIM}Level  Strokes  Par   Score    Hard   Par   Score${NC}"
         echo -e "  ${DIM}─────  ───────  ───   ─────    ────   ───   ─────${NC}"
 
-        for i in $(seq 1 15); do
+        for i in $(seq 1 "$TOTAL_LEVELS"); do
             local best=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
-            local hbest=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
+            local hbest=""
+            if [ "$i" -le "$TOTAL_HARD_LEVELS" ]; then
+                hbest=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
+            fi
 
             local normal_col=""
             if [ -n "$best" ]; then
@@ -956,22 +742,71 @@ show_scores() {
                 hard_strokes=$((hard_strokes + hbest))
                 hard_par=$((hard_par + hpar))
                 hard_completed=$((hard_completed + 1))
-            else
+            elif [ "$i" -le "$TOTAL_HARD_LEVELS" ]; then
                 hard_col=$(printf "%-6s %-5s %s" "-" "-" " ")
+            else
+                hard_col=""  # no hard variant for levels beyond the original set
             fi
 
             printf "  %-6s %b    %b\n" "$i" "$normal_col" "$hard_col"
         done
 
+        # Tutorial progress is summarized rather than shown per-row.
+        local tut_completed=0 t
+        for t in $(seq 1 "$TOTAL_TUTORIAL_LEVELS"); do
+            grep -q "^tut${t}:" "$SCORE_FILE" && tut_completed=$((tut_completed + 1))
+        done
+
         echo ""
         echo -e "  ${DIM}─────────────────────────────────────────────${NC}"
-        printf "  ${DIM}Normal: %d/15 completed${NC}\n" "$levels_completed"
-        printf "  ${DIM}Hard:   %d/15 completed${NC}\n" "$hard_completed"
+        printf "  ${DIM}Tutorial: %d/%d completed${NC}\n" "$tut_completed" "$TOTAL_TUTORIAL_LEVELS"
+        printf "  ${DIM}Normal:   %d/%d completed${NC}\n" "$levels_completed" "$TOTAL_LEVELS"
+        printf "  ${DIM}Hard:     %d/%d completed${NC}\n" "$hard_completed" "$TOTAL_HARD_LEVELS"
     fi
 
     echo ""
     echo -e "  ${DIM}Press any key to return...${NC}"
     read -rsn1
+}
+
+# Print the solution key for one track. Reads solution + note lines straight
+# from each data file so the key never drifts out of sync with the levels.
+# Args: <data_dir> <count> <section_title>
+# Returns 1 if the viewer asked to stop paging.
+show_key_track() {
+    local data_dir=$1 count=$2 title=$3
+    echo -e "  ${BOLD}${title}${NC}"
+    echo -e "  ${DIM}Lvl  Par  Solution${NC}"
+    echo -e "  ${DIM}───  ───  ────────${NC}"
+
+    local i
+    for i in $(seq 1 "$count"); do
+        local data_file
+        data_file=$(printf '%s/%02d.level' "$data_dir" "$i")
+        [ -f "$data_file" ] || continue
+
+        local par sol
+        par=$(awk -F': ' '/^par: /{print $2; exit}' "$data_file")
+        sol=$(awk '/^solution: /{sub(/^solution: /,""); print; exit}' "$data_file")
+
+        printf "  %2d  %3s  ${YELLOW}%s${NC}\n" "$i" "$par" "$sol"
+        awk '/^note: /{sub(/^note: /,""); print}' "$data_file" | while IFS= read -r n; do
+            echo -e "         ${DIM}${n}${NC}"
+        done
+        echo ""
+
+        # Page every 6 levels so the list stays readable.
+        if [ $((i % 6)) -eq 0 ] && [ "$i" -lt "$count" ]; then
+            echo -e "  ${DIM}-- more (${i}/${count}) — press any key, or q to stop --${NC}"
+            local k; read -rsn1 k
+            { [ "$k" = "q" ] || [ "$k" = "Q" ]; } && return 1
+            clear
+            echo -e "  ${BOLD}${title}${NC}"
+            echo -e "  ${DIM}Lvl  Par  Solution${NC}"
+            echo -e "  ${DIM}───  ───  ────────${NC}"
+        fi
+    done
+    return 0
 }
 
 show_key() {
@@ -980,60 +815,16 @@ show_key() {
     echo -e "${CYAN}  SOLUTION KEY${NC}"
     echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
     echo ""
-    echo -e "  ${DIM}Lvl  Par  Solution${NC}"
-    echo -e "  ${DIM}───  ───  ────────${NC}"
 
-    echo -e "   1    3  ${YELLOW}jdd${NC}"
-    echo -e "         ${DIM}j moves down one line to the target; dd deletes that whole line.${NC}"
-    echo ""
-    echo -e "   2   12  ${YELLOW}:%s/foo/bar<CR>${NC}"
-    echo -e "         ${DIM}:%s substitutes on every line (%); swaps the first 'foo' per line for 'bar'.${NC}"
-    echo ""
-    echo -e "   3    8  ${YELLOW}:g/^/m0<CR>${NC}"
-    echo -e "         ${DIM}:g/^/ runs on every line; m0 moves each to the top, reversing the order.${NC}"
-    echo ""
-    echo -e "   4   11  ${YELLOW}:%s/.*/\"&\"<CR>${NC}"
-    echo -e "         ${DIM}.* matches the whole line; & in the replacement re-inserts it, wrapped in quotes.${NC}"
-    echo ""
-    echo -e "   5   16  ${YELLOW}:%s/\\\\u/_\\\\l&/g<CR>${NC}"
-    echo -e "         ${DIM}\\u matches an uppercase letter; replace with _ plus its lowercase (\\l&). g = all per line.${NC}"
-    echo ""
-    echo -e "   6    7  ${YELLOW}:sor u<CR>${NC}"
-    echo -e "         ${DIM}:sort with the u flag sorts all lines and drops duplicates in one pass.${NC}"
-    echo ""
-    echo -e "   7   10  ${YELLOW}qa<C-A>l<C-A>+q4@a${NC}"
-    echo -e "         ${DIM}Record macro a: <C-A> increments a number, l steps onto the next, <C-A> again,${NC}"
-    echo -e "         ${DIM}+ drops to the next line; q ends it. 4@a replays it on the remaining 4 lines.${NC}"
-    echo ""
-    echo -e "   8   30  ${YELLOW}:%s/,/ | /g<CR> :%s/^/| <CR> :%s/\$/ |<CR> + manual sep${NC}"
-    echo -e "         ${DIM}Turn commas into ' | ', add a leading and trailing pipe, then hand-type the |---| row.${NC}"
-    echo ""
-    echo -e "   9   20  ${YELLOW}f=i <Esc>...+f=..++f=...${NC}"
-    echo -e "         ${DIM}f= jumps to the =, i <Esc> inserts a space before it; . repeats that edit,${NC}"
-    echo -e "         ${DIM}padding each line until the = signs line up (skip already-aligned lines).${NC}"
-    echo ""
-    echo -e "  10   20  ${YELLOW}:v/^d/d<CR>:%norm 4xf(D<CR>${NC}"
-    echo -e "         ${DIM}:v/^d/d deletes lines NOT starting with 'd'; :%norm runs keys on each survivor:${NC}"
-    echo -e "         ${DIM}4x strips 'def ', f( jumps to '(', D deletes to end — leaving just the name.${NC}"
-    echo ""
-    echo -e "  11   27  ${YELLOW}:%!awk '{print \$2\"   \"\$1}'<CR>${NC}"
-    echo -e "         ${DIM}:%! pipes the whole buffer through awk, which prints field 2 then field 1, swapped.${NC}"
-    echo ""
-    echo -e "  12    7  ${YELLOW}:v/./d<CR>${NC}"
-    echo -e "         ${DIM}:v/./d deletes every line with no character at all — i.e. the blank lines.${NC}"
-    echo ""
-    echo -e "  13   24  ${YELLOW}:%s/.*/  \"&\",<CR>\$xo]<Esc>ggO[<Esc>${NC}"
-    echo -e "         ${DIM}Wrap each line as '  \"line\",'; \$x removes the trailing comma on the last line;${NC}"
-    echo -e "         ${DIM}o]<Esc> adds the closing bracket, ggO[<Esc> adds the opening one at the top.${NC}"
-    echo ""
-    echo -e "  14   16  ${YELLOW}:%s/^/0. <CR>gg<C-V>Gg<C-A>${NC}"
-    echo -e "         ${DIM}Prefix every line with '0. '; select the 0 column with <C-V>, then g<C-A>${NC}"
-    echo -e "         ${DIM}increments each selected number sequentially (1, 2, 3, ...).${NC}"
-    echo ""
-    echo -e "  15   25  ${YELLOW}:%s/ {\\\\|, /\\\\r  /g|%s/}//<CR>${NC}"
-    echo -e "         ${DIM}Replace ' {' or ', ' (\\| = OR) with a newline + 2-space indent (\\r  ),${NC}"
-    echo -e "         ${DIM}then a second :%s strips the leftover closing braces.${NC}"
-    echo ""
+    if show_key_track "$TUTORIAL_DATA_DIR" "$TOTAL_TUTORIAL_LEVELS" "TUTORIAL"; then
+        echo -e "  ${DIM}-- press any key for the Normal track, or q to stop --${NC}"
+        local k; read -rsn1 k
+        if [ "$k" != "q" ] && [ "$k" != "Q" ]; then
+            clear
+            show_key_track "$LEVELS_DATA_DIR" "$TOTAL_LEVELS" "NORMAL"
+        fi
+    fi
+
     echo -e "  ${DIM}Notation: <CR>=Enter, <C-A>=Ctrl-A, <C-V>=Ctrl-V, <Esc>=Escape${NC}"
     echo -e "  ${DIM}These are PAR solutions — shorter solutions may exist!${NC}"
     echo ""
@@ -1044,24 +835,26 @@ show_key() {
 level_select() {
     local select_mode=${1:-normal}
 
+    # Per-mode display title, level count, and score-file prefix.
+    local title max_level score_prefix
+    case "$select_mode" in
+        hard)     title="${RED}HARD MODE — SELECT LEVEL${NC}";      max_level=$TOTAL_HARD_LEVELS;     score_prefix="hard" ;;
+        tutorial) title="${CYAN}TUTORIAL — SELECT LEVEL${NC}";       max_level=$TOTAL_TUTORIAL_LEVELS; score_prefix="tut" ;;
+        *)        title="${CYAN}SELECT LEVEL${NC}";                  max_level=$TOTAL_LEVELS;          score_prefix="level" ;;
+    esac
+
     clear
-    if [ "$select_mode" = "hard" ]; then
-        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
-        echo -e "${RED}  HARD MODE — SELECT LEVEL${NC}"
-        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
-    else
-        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
-        echo -e "${CYAN}  SELECT LEVEL${NC}"
-        echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
-    fi
+    echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
+    echo -e "  $title"
+    echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
     echo ""
 
-    for i in $(seq 1 15); do
+    for i in $(seq 1 "$max_level"); do
         local info
         if [ "$select_mode" = "hard" ]; then
             info=$(setup_hard_level "$i" 2>/dev/null)
         else
-            info=$(setup_level "$i" 2>/dev/null)
+            info=$(setup_level "$i" "$select_mode" 2>/dev/null)
         fi
         local par=$(echo "$info" | cut -d'|' -f1)
         local desc=$(echo "$info" | cut -d'|' -f4)
@@ -1070,17 +863,11 @@ level_select() {
         local locked=""
         local best=""
         local score_str=""
-        if [ "$select_mode" = "hard" ]; then
-            # Check if normal level is completed (unlock requirement)
-            if ! is_level_completed "$i"; then
-                locked="${DIM}[LOCKED]${NC}"
-            elif [ -f "$SCORE_FILE" ]; then
-                best=$(grep "^hard${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
-            fi
-        else
-            if [ -f "$SCORE_FILE" ]; then
-                best=$(grep "^level${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
-            fi
+        if [ "$select_mode" = "hard" ] && ! is_level_completed "$i"; then
+            # Hard levels unlock only after the matching normal level is done.
+            locked="${DIM}[LOCKED]${NC}"
+        elif [ -f "$SCORE_FILE" ]; then
+            best=$(grep "^${score_prefix}${i}:" "$SCORE_FILE" | cut -d: -f2 | sort -n | head -1)
         fi
 
         if [ -n "$best" ]; then
@@ -1107,56 +894,67 @@ level_select() {
     done
 
     echo ""
-    echo -e "  ${DIM}Enter level number (1-15) or [q] to go back:${NC} "
+    echo -e "  ${DIM}Enter level number (1-${max_level}) or [q] to go back:${NC} "
     read -r choice
 
     case "$choice" in
-        [1-9]|1[0-5])
-            if [ "$select_mode" = "hard" ] && ! is_level_completed "$choice"; then
-                echo -e "  ${RED}Complete normal level $choice first to unlock!${NC}"
-                sleep 2
-                return
-            fi
-            local lvl=$choice
-            while [ "$lvl" -le 15 ]; do
-                if [ "$select_mode" = "hard" ] && ! is_level_completed "$lvl"; then
-                    echo -e "  ${RED}Level $lvl locked — complete normal mode first${NC}"
-                    sleep 2
-                    return
-                fi
-                play_level "$lvl" "$select_mode"
-                local ret=$?
-                case $ret in
-                    0) lvl=$((lvl + 1)) ;;  # next level
-                    1) return ;;            # quit
-                    2) lvl=$((lvl + 1)) ;;  # skip
-                    3) return ;;            # back to menu
-                esac
-            done
-            ;;
         q|Q) return ;;
-        *) echo "Invalid choice"; sleep 1 ;;
+        ''|*[!0-9]*) echo "Invalid choice"; sleep 1; return ;;
     esac
+    if [ "$choice" -lt 1 ] || [ "$choice" -gt "$max_level" ]; then
+        echo "Invalid choice"; sleep 1; return
+    fi
+
+    if [ "$select_mode" = "hard" ] && ! is_level_completed "$choice"; then
+        echo -e "  ${RED}Complete normal level $choice first to unlock!${NC}"
+        sleep 2
+        return
+    fi
+    local lvl=$choice
+    while [ "$lvl" -le "$max_level" ]; do
+        if [ "$select_mode" = "hard" ] && ! is_level_completed "$lvl"; then
+            echo -e "  ${RED}Level $lvl locked — complete normal mode first${NC}"
+            sleep 2
+            return
+        fi
+        play_level "$lvl" "$select_mode"
+        local ret=$?
+        case $ret in
+            0) lvl=$((lvl + 1)) ;;  # next level
+            1) return ;;            # quit
+            2) lvl=$((lvl + 1)) ;;  # skip
+            3) return ;;            # back to menu
+        esac
+    done
 }
 
 main_menu() {
     while true; do
         clear
         print_banner
-        echo -e "  ${BOLD}[p]${NC} Play (sequential)    ${BOLD}[l]${NC} Level select"
-        echo -e "  ${BOLD}[h]${NC} ${RED}Hard mode${NC}            ${BOLD}[s]${NC} Scoreboard"
-        echo -e "  ${BOLD}[k]${NC} Solution key         ${BOLD}[r]${NC} Reset scores"
-        echo -e "  ${BOLD}[q]${NC} Quit"
+        echo -e "  ${BOLD}[t]${NC} ${CYAN}Tutorial${NC}             ${BOLD}[p]${NC} Play (sequential)"
+        echo -e "  ${BOLD}[l]${NC} Level select         ${BOLD}[h]${NC} ${RED}Hard mode${NC}"
+        echo -e "  ${BOLD}[s]${NC} Scoreboard           ${BOLD}[k]${NC} Solution key"
+        echo -e "  ${BOLD}[r]${NC} Reset scores         ${BOLD}[q]${NC} Quit"
         echo ""
         echo -e "  ${DIM}Rules: Transform START into GOAL using vim.${NC}"
         echo -e "  ${DIM}Your keystrokes are counted. Beat par to earn *${NC}"
+        echo -e "  ${DIM}Tutorial: learn vim basics — motions, text objects, macros.${NC}"
         echo -e "  ${DIM}Hard mode: same concept at 50-100x scale. Unlocked per level.${NC}"
         echo ""
 
         read -rsn1 choice
         case "$choice" in
+            t|T)
+                for i in $(seq 1 "$TOTAL_TUTORIAL_LEVELS"); do
+                    play_level "$i" tutorial
+                    local ret=$?
+                    [ $ret -eq 1 ] && break
+                    [ $ret -eq 3 ] && break
+                done
+                ;;
             p|P)
-                for i in $(seq 1 15); do
+                for i in $(seq 1 "$TOTAL_LEVELS"); do
                     play_level "$i" normal
                     local ret=$?
                     [ $ret -eq 1 ] && break

@@ -1,0 +1,21 @@
+desc: Increment all numbers by 1
+category: macro
+par: 10
+hint1: Ctrl-A increments numbers in normal mode
+hint2: Record a macro: Ctrl-A finds the next number on the line and increments it
+solution: qa<C-A>l<C-A>+q4@a
+note: Record macro a: <C-A> increments a number, l steps onto the next, <C-A> again,
+note: + drops to the next line; q ends it. 4@a replays it on the remaining 4 lines.
+--- START ---
+item 1: value 10
+item 2: value 20
+item 3: value 30
+item 4: value 40
+item 5: value 50
+--- GOAL ---
+item 2: value 11
+item 3: value 21
+item 4: value 31
+item 5: value 41
+item 6: value 51
+--- END ---

@@ -1,0 +1,15 @@
+desc: Delete the middle line
+category: manual
+par: 3
+hint1: Think: go to line, delete it
+hint2: j moves down, dd deletes a whole line
+solution: jdd
+note: j moves down one line to the target; dd deletes that whole line.
+--- START ---
+hello
+delete this line
+world
+--- GOAL ---
+hello
+world
+--- END ---

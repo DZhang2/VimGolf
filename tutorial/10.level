@@ -1,0 +1,16 @@
+desc: Move the last line to the top
+category: manual
+par: 6
+hint1: Cut the line, jump to the top, paste above
+hint2: G goes to the last line, gg to the first; P pastes above the cursor
+solution: GddggP
+note: G jumps to the last line; dd cuts it; gg goes to the top; P puts it above line 1.
+--- START ---
+apple
+banana
+MOVE UP
+--- GOAL ---
+MOVE UP
+apple
+banana
+--- END ---

@@ -1,0 +1,16 @@
+desc: Delete the leading X from each line
+category: manual
+par: 4
+hint1: Visual block selects the same column across lines
+hint2: Ctrl-V down the first column, then x deletes the selection
+solution: <C-V>jjx
+note: <C-V> selects a block down the first column (jj), x deletes the selected characters.
+--- START ---
+Xapple
+Xbanana
+Xcherry
+--- GOAL ---
+apple
+banana
+cherry
+--- END ---

@@ -1,0 +1,14 @@
+desc: Swap these two lines
+category: manual
+par: 3
+hint1: Delete one line, then put it back in the right place
+hint2: dd cuts a line into a register; p pastes it below the cursor
+solution: ddp
+note: dd deletes (cuts) the current line; p puts it back below the next one, swapping the pair.
+--- START ---
+line two
+line one
+--- GOAL ---
+line one
+line two
+--- END ---

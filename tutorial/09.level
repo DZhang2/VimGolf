@@ -1,0 +1,12 @@
+desc: Replace the text inside the quotes
+category: motion
+par: 13
+hint1: A text object can target what's between the quotes
+hint2: ci" works from anywhere on the line — no need to move to the quote first
+solution: ci"New Title<Esc>
+note: ci" changes the text inside the double quotes; type the replacement, then <Esc>.
+--- START ---
+title = "old name"
+--- GOAL ---
+title = "New Title"
+--- END ---

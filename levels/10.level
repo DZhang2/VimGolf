@@ -1,0 +1,26 @@
+desc: Extract function names into a list
+category: ex
+par: 20
+hint1: Global command + delete what you don't need
+hint2: :v (inverse global) deletes non-matching lines; :%norm applies keys to every line
+solution: :v/^d/d<CR>:%norm 4xf(D<CR>
+note: :v/^d/d deletes lines NOT starting with 'd'; :%norm runs keys on each survivor:
+note: 4x strips 'def ', f( jumps to '(', D deletes to end — leaving just the name.
+--- START ---
+def initialize(config):
+    pass
+
+def process_data(input, output):
+    pass
+
+def validate(schema):
+    pass
+
+def cleanup():
+    pass
+--- GOAL ---
+initialize
+process_data
+validate
+cleanup
+--- END ---

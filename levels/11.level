@@ -1,0 +1,20 @@
+desc: Swap the two columns
+category: ex
+par: 27
+hint1: Filter through an external command
+hint2: :%! pipes the buffer through a shell command — awk can reorder fields
+solution: :%!awk '{print $2"   "$1}'<CR>
+note: :%! pipes the whole buffer through awk, which prints field 2 then field 1, swapped.
+--- START ---
+Alice   100
+Bob     200
+Carol   300
+Dave    400
+Eve     500
+--- GOAL ---
+100   Alice
+200   Bob
+300   Carol
+400   Dave
+500   Eve
+--- END ---

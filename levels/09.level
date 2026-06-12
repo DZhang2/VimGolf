@@ -1,0 +1,21 @@
+desc: Align the equals signs
+category: manual
+par: 20
+hint1: Think column-wise or dot command
+hint2: f finds =, insert a space before it, then . repeats — skip already-aligned lines
+solution: f=i <Esc>...+f=..++f=...
+note: f= jumps to the =, i <Esc> inserts a space before it; . repeats that edit,
+note: padding each line until the = signs line up (skip already-aligned lines).
+--- START ---
+x = 1
+foo = 2
+hello = 3
+ab = 4
+world = 5
+--- GOAL ---
+x     = 1
+foo   = 2
+hello = 3
+ab    = 4
+world = 5
+--- END ---

@@ -1,0 +1,17 @@
+desc: Append a semicolon to every line
+category: manual
+par: 7
+hint1: Visual block can append past ragged line ends
+hint2: Ctrl-V, then $ to select to each line's end, then A to append
+solution: <C-V>jj$A;<Esc>
+note: <C-V> block selection, jj down, $ extends to each (ragged) line end, A appends
+note: ';' after every line, <Esc> applies it to all.
+--- START ---
+a = 1
+b = 2
+c = 3
+--- GOAL ---
+a = 1;
+b = 2;
+c = 3;
+--- END ---
