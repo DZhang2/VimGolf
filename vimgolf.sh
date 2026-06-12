@@ -13,14 +13,17 @@ mkdir -p "$LEVEL_DIR"
 # by dropping in a NN.level file — no code changes required.
 #   tutorial/  — beginner track: motions, text objects, visual block, macros
 #   levels/    — normal track: powerful Ex commands (:s, :g, :sort, filters)
+#   expert/    — expert track: multi-stage challenges, no solution key
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LEVELS_DATA_DIR="$SCRIPT_DIR/levels"
 TUTORIAL_DATA_DIR="$SCRIPT_DIR/tutorial"
+EXPERT_DATA_DIR="$SCRIPT_DIR/expert"
 
 # Map a mode name to the directory holding its .level files.
 mode_data_dir() {
     case "$1" in
         tutorial) echo "$TUTORIAL_DATA_DIR" ;;
+        expert)   echo "$EXPERT_DATA_DIR" ;;
         *)        echo "$LEVELS_DATA_DIR" ;;
     esac
 }
@@ -35,6 +38,7 @@ count_data_levels() {
 
 TOTAL_LEVELS=$(count_data_levels "$LEVELS_DATA_DIR");      [ "$TOTAL_LEVELS" -eq 0 ] && TOTAL_LEVELS=15
 TOTAL_TUTORIAL_LEVELS=$(count_data_levels "$TUTORIAL_DATA_DIR"); [ "$TOTAL_TUTORIAL_LEVELS" -eq 0 ] && TOTAL_TUTORIAL_LEVELS=15
+TOTAL_EXPERT_LEVELS=$(count_data_levels "$EXPERT_DATA_DIR")
 
 # Hard mode is the programmatically-scaled variant of the normal levels.
 TOTAL_HARD_LEVELS=15
@@ -506,6 +510,7 @@ play_level() {
     local mode_label=""
     [ "$mode" = "hard" ] && mode_label="${RED}[HARD] ${NC}"
     [ "$mode" = "tutorial" ] && mode_label="${CYAN}[TUTORIAL] ${NC}"
+    [ "$mode" = "expert" ] && mode_label="${RED}${BOLD}[EXPERT] ${NC}"
 
     while true; do
         clear
@@ -546,7 +551,10 @@ play_level() {
                     printf "  %s  ${GREEN}%s${NC}\n" "$(fmt_line "$sline" "$col_width")" "$(fmt_line "$gline" "$col_width")"
                 done
             else
-                # Show first 5 and last 5
+                # Show first 5 and last 5. Each column is truncated relative to
+                # its OWN length so neither the start nor the goal ending (e.g.
+                # the closing } of a JSON goal) ever gets cut off, even when the
+                # two files differ in line count.
                 for i in $(seq 1 5); do
                     local sline gline
                     sline=$(sed -n "${i}p" "$start_file")
@@ -554,10 +562,11 @@ play_level() {
                     printf "  %s  ${GREEN}%s${NC}\n" "$(fmt_line "$sline" "$col_width")" "$(fmt_line "$gline" "$col_width")"
                 done
                 printf "  ${DIM}%-${col_width}s  %-${col_width}s${NC}\n" "  ... ($((start_lines - 10)) more)" "  ... ($((goal_lines - 10)) more)"
-                for i in $(seq $((start_lines - 4)) $start_lines); do
+                local k
+                for k in 0 1 2 3 4; do
                     local sline gline
-                    sline=$(sed -n "${i}p" "$start_file")
-                    gline=$(sed -n "${i}p" "$goal_file" 2>/dev/null)
+                    sline=$(sed -n "$((start_lines - 4 + k))p" "$start_file")
+                    gline=$(sed -n "$((goal_lines - 4 + k))p" "$goal_file" 2>/dev/null)
                     printf "  %s  ${GREEN}%s${NC}\n" "$(fmt_line "$sline" "$col_width")" "$(fmt_line "$gline" "$col_width")"
                 done
             fi
@@ -639,6 +648,7 @@ play_level() {
             local score_prefix="level"
             [ "$mode" = "hard" ] && score_prefix="hard"
             [ "$mode" = "tutorial" ] && score_prefix="tut"
+            [ "$mode" = "expert" ] && score_prefix="exp"
             echo "${score_prefix}${level}:${keystrokes}:${par}" >> "$SCORE_FILE"
             echo ""
             echo -e "  ${BOLD}[Enter]${NC} Next level  ${BOLD}[r]${NC} Retry  ${BOLD}[m]${NC} Menu  ${BOLD}[q]${NC} Quit"
@@ -751,10 +761,13 @@ show_scores() {
             printf "  %-6s %b    %b\n" "$i" "$normal_col" "$hard_col"
         done
 
-        # Tutorial progress is summarized rather than shown per-row.
-        local tut_completed=0 t
+        # Tutorial and Expert progress are summarized rather than shown per-row.
+        local tut_completed=0 exp_completed=0 t
         for t in $(seq 1 "$TOTAL_TUTORIAL_LEVELS"); do
             grep -q "^tut${t}:" "$SCORE_FILE" && tut_completed=$((tut_completed + 1))
+        done
+        for t in $(seq 1 "$TOTAL_EXPERT_LEVELS"); do
+            grep -q "^exp${t}:" "$SCORE_FILE" && exp_completed=$((exp_completed + 1))
         done
 
         echo ""
@@ -762,6 +775,7 @@ show_scores() {
         printf "  ${DIM}Tutorial: %d/%d completed${NC}\n" "$tut_completed" "$TOTAL_TUTORIAL_LEVELS"
         printf "  ${DIM}Normal:   %d/%d completed${NC}\n" "$levels_completed" "$TOTAL_LEVELS"
         printf "  ${DIM}Hard:     %d/%d completed${NC}\n" "$hard_completed" "$TOTAL_HARD_LEVELS"
+        printf "  ${DIM}Expert:   %d/%d completed${NC}\n" "$exp_completed" "$TOTAL_EXPERT_LEVELS"
     fi
 
     echo ""
@@ -788,6 +802,12 @@ show_key_track() {
         local par sol
         par=$(awk -F': ' '/^par: /{print $2; exit}' "$data_file")
         sol=$(awk '/^solution: /{sub(/^solution: /,""); print; exit}' "$data_file")
+
+        if [ -z "$sol" ]; then
+            # Expert levels intentionally ship without a solution — figure it out.
+            printf "  %2d  %3s  ${DIM}(hidden — no solution provided)${NC}\n\n" "$i" "$par"
+            continue
+        fi
 
         printf "  %2d  %3s  ${YELLOW}%s${NC}\n" "$i" "$par" "$sol"
         awk '/^note: /{sub(/^note: /,""); print}' "$data_file" | while IFS= read -r n; do
@@ -816,12 +836,21 @@ show_key() {
     echo -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
     echo ""
 
+    local k
     if show_key_track "$TUTORIAL_DATA_DIR" "$TOTAL_TUTORIAL_LEVELS" "TUTORIAL"; then
         echo -e "  ${DIM}-- press any key for the Normal track, or q to stop --${NC}"
-        local k; read -rsn1 k
+        read -rsn1 k
         if [ "$k" != "q" ] && [ "$k" != "Q" ]; then
             clear
-            show_key_track "$LEVELS_DATA_DIR" "$TOTAL_LEVELS" "NORMAL"
+            if show_key_track "$LEVELS_DATA_DIR" "$TOTAL_LEVELS" "NORMAL" \
+               && [ "$TOTAL_EXPERT_LEVELS" -gt 0 ]; then
+                echo -e "  ${DIM}-- press any key for the Expert track, or q to stop --${NC}"
+                read -rsn1 k
+                if [ "$k" != "q" ] && [ "$k" != "Q" ]; then
+                    clear
+                    show_key_track "$EXPERT_DATA_DIR" "$TOTAL_EXPERT_LEVELS" "EXPERT (solutions hidden)"
+                fi
+            fi
         fi
     fi
 
@@ -838,9 +867,10 @@ level_select() {
     # Per-mode display title, level count, and score-file prefix.
     local title max_level score_prefix
     case "$select_mode" in
-        hard)     title="${RED}HARD MODE — SELECT LEVEL${NC}";      max_level=$TOTAL_HARD_LEVELS;     score_prefix="hard" ;;
-        tutorial) title="${CYAN}TUTORIAL — SELECT LEVEL${NC}";       max_level=$TOTAL_TUTORIAL_LEVELS; score_prefix="tut" ;;
-        *)        title="${CYAN}SELECT LEVEL${NC}";                  max_level=$TOTAL_LEVELS;          score_prefix="level" ;;
+        hard)     title="${RED}HARD MODE — SELECT LEVEL${NC}";       max_level=$TOTAL_HARD_LEVELS;     score_prefix="hard" ;;
+        tutorial) title="${CYAN}TUTORIAL — SELECT LEVEL${NC}";        max_level=$TOTAL_TUTORIAL_LEVELS; score_prefix="tut" ;;
+        expert)   title="${RED}${BOLD}EXPERT — SELECT LEVEL${NC}";     max_level=$TOTAL_EXPERT_LEVELS;   score_prefix="exp" ;;
+        *)        title="${CYAN}SELECT LEVEL${NC}";                   max_level=$TOTAL_LEVELS;          score_prefix="level" ;;
     esac
 
     clear
@@ -934,13 +964,15 @@ main_menu() {
         print_banner
         echo -e "  ${BOLD}[t]${NC} ${CYAN}Tutorial${NC}             ${BOLD}[p]${NC} Play (sequential)"
         echo -e "  ${BOLD}[l]${NC} Level select         ${BOLD}[h]${NC} ${RED}Hard mode${NC}"
-        echo -e "  ${BOLD}[s]${NC} Scoreboard           ${BOLD}[k]${NC} Solution key"
-        echo -e "  ${BOLD}[r]${NC} Reset scores         ${BOLD}[q]${NC} Quit"
+        echo -e "  ${BOLD}[e]${NC} ${RED}${BOLD}Expert${NC}               ${BOLD}[s]${NC} Scoreboard"
+        echo -e "  ${BOLD}[k]${NC} Solution key         ${BOLD}[r]${NC} Reset scores"
+        echo -e "  ${BOLD}[q]${NC} Quit"
         echo ""
         echo -e "  ${DIM}Rules: Transform START into GOAL using vim.${NC}"
         echo -e "  ${DIM}Your keystrokes are counted. Beat par to earn *${NC}"
         echo -e "  ${DIM}Tutorial: learn vim basics — motions, text objects, macros.${NC}"
         echo -e "  ${DIM}Hard mode: same concept at 50-100x scale. Unlocked per level.${NC}"
+        echo -e "  ${DIM}Expert: brutal multi-stage challenges — no solution key.${NC}"
         echo ""
 
         read -rsn1 choice
@@ -953,6 +985,7 @@ main_menu() {
                     [ $ret -eq 3 ] && break
                 done
                 ;;
+            e|E) level_select expert ;;
             p|P)
                 for i in $(seq 1 "$TOTAL_LEVELS"); do
                     play_level "$i" normal

@@ -1,0 +1,210 @@
+desc: Pretty-print 100 messy KEY: Value lines as one JSON object
+category: expert
+par: 43
+hint1: One sweep can both raise the first letter and crush the rest — \u riding on \L, applied to the whole line.
+hint2: Quotes come in two waves; the braces and the lone trailing comma are a normal-mode afterthought.
+--- START ---
+NAME: Jane DOE
+role: Site ADMIN
+CITY: San Jose
+status: ACTIVE member
+TEAM: Cloud Ops
+owner: Pat LEE
+REGION: East ZONE
+tier: Gold TIER
+LABEL: Beta FLAG
+group: Core TEAM
+ZONE: Red ZONE
+stage: Live STAGE
+REALM: Prod REALM
+scope: Full SCOPE
+BRAND: Acme CORP
+name: Jane DOE
+ROLE: Site ADMIN
+city: San Jose
+STATUS: ACTIVE member
+team: Cloud Ops
+OWNER: Pat LEE
+region: East ZONE
+TIER: Gold TIER
+label: Beta FLAG
+GROUP: Core TEAM
+zone: Red ZONE
+STAGE: Live STAGE
+realm: Prod REALM
+SCOPE: Full SCOPE
+brand: Acme CORP
+NAME: Jane DOE
+role: Site ADMIN
+CITY: San Jose
+status: ACTIVE member
+TEAM: Cloud Ops
+owner: Pat LEE
+REGION: East ZONE
+tier: Gold TIER
+LABEL: Beta FLAG
+group: Core TEAM
+ZONE: Red ZONE
+stage: Live STAGE
+REALM: Prod REALM
+scope: Full SCOPE
+BRAND: Acme CORP
+name: Jane DOE
+ROLE: Site ADMIN
+city: San Jose
+STATUS: ACTIVE member
+team: Cloud Ops
+OWNER: Pat LEE
+region: East ZONE
+TIER: Gold TIER
+label: Beta FLAG
+GROUP: Core TEAM
+zone: Red ZONE
+STAGE: Live STAGE
+realm: Prod REALM
+SCOPE: Full SCOPE
+brand: Acme CORP
+NAME: Jane DOE
+role: Site ADMIN
+CITY: San Jose
+status: ACTIVE member
+TEAM: Cloud Ops
+owner: Pat LEE
+REGION: East ZONE
+tier: Gold TIER
+LABEL: Beta FLAG
+group: Core TEAM
+ZONE: Red ZONE
+stage: Live STAGE
+REALM: Prod REALM
+scope: Full SCOPE
+BRAND: Acme CORP
+name: Jane DOE
+ROLE: Site ADMIN
+city: San Jose
+STATUS: ACTIVE member
+team: Cloud Ops
+OWNER: Pat LEE
+region: East ZONE
+TIER: Gold TIER
+label: Beta FLAG
+GROUP: Core TEAM
+zone: Red ZONE
+STAGE: Live STAGE
+realm: Prod REALM
+SCOPE: Full SCOPE
+brand: Acme CORP
+NAME: Jane DOE
+role: Site ADMIN
+CITY: San Jose
+status: ACTIVE member
+TEAM: Cloud Ops
+owner: Pat LEE
+REGION: East ZONE
+tier: Gold TIER
+LABEL: Beta FLAG
+group: Core TEAM
+--- GOAL ---
+{
+  "Name": "jane doe",
+  "Role": "site admin",
+  "City": "san jose",
+  "Status": "active member",
+  "Team": "cloud ops",
+  "Owner": "pat lee",
+  "Region": "east zone",
+  "Tier": "gold tier",
+  "Label": "beta flag",
+  "Group": "core team",
+  "Zone": "red zone",
+  "Stage": "live stage",
+  "Realm": "prod realm",
+  "Scope": "full scope",
+  "Brand": "acme corp",
+  "Name": "jane doe",
+  "Role": "site admin",
+  "City": "san jose",
+  "Status": "active member",
+  "Team": "cloud ops",
+  "Owner": "pat lee",
+  "Region": "east zone",
+  "Tier": "gold tier",
+  "Label": "beta flag",
+  "Group": "core team",
+  "Zone": "red zone",
+  "Stage": "live stage",
+  "Realm": "prod realm",
+  "Scope": "full scope",
+  "Brand": "acme corp",
+  "Name": "jane doe",
+  "Role": "site admin",
+  "City": "san jose",
+  "Status": "active member",
+  "Team": "cloud ops",
+  "Owner": "pat lee",
+  "Region": "east zone",
+  "Tier": "gold tier",
+  "Label": "beta flag",
+  "Group": "core team",
+  "Zone": "red zone",
+  "Stage": "live stage",
+  "Realm": "prod realm",
+  "Scope": "full scope",
+  "Brand": "acme corp",
+  "Name": "jane doe",
+  "Role": "site admin",
+  "City": "san jose",
+  "Status": "active member",
+  "Team": "cloud ops",
+  "Owner": "pat lee",
+  "Region": "east zone",
+  "Tier": "gold tier",
+  "Label": "beta flag",
+  "Group": "core team",
+  "Zone": "red zone",
+  "Stage": "live stage",
+  "Realm": "prod realm",
+  "Scope": "full scope",
+  "Brand": "acme corp",
+  "Name": "jane doe",
+  "Role": "site admin",
+  "City": "san jose",
+  "Status": "active member",
+  "Team": "cloud ops",
+  "Owner": "pat lee",
+  "Region": "east zone",
+  "Tier": "gold tier",
+  "Label": "beta flag",
+  "Group": "core team",
+  "Zone": "red zone",
+  "Stage": "live stage",
+  "Realm": "prod realm",
+  "Scope": "full scope",
+  "Brand": "acme corp",
+  "Name": "jane doe",
+  "Role": "site admin",
+  "City": "san jose",
+  "Status": "active member",
+  "Team": "cloud ops",
+  "Owner": "pat lee",
+  "Region": "east zone",
+  "Tier": "gold tier",
+  "Label": "beta flag",
+  "Group": "core team",
+  "Zone": "red zone",
+  "Stage": "live stage",
+  "Realm": "prod realm",
+  "Scope": "full scope",
+  "Brand": "acme corp",
+  "Name": "jane doe",
+  "Role": "site admin",
+  "City": "san jose",
+  "Status": "active member",
+  "Team": "cloud ops",
+  "Owner": "pat lee",
+  "Region": "east zone",
+  "Tier": "gold tier",
+  "Label": "beta flag",
+  "Group": "core team"
+}
+--- END ---

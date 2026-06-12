@@ -1,0 +1,508 @@
+desc: Collapse 100 indented outline blocks into parent::Child breadcrumbs
+category: expert
+par: 37
+hint1: One register carries the head while the limb is severed; the body remembers it twice.
+hint2: Strip the margin, flip a single case, summon the kept word — then let a count do the rest.
+--- START ---
+animal
+  dog
+  cod
+plant
+  cat
+  ram
+food
+  fox
+  hen
+metal
+  owl
+  jay
+color
+  bee
+  yak
+tool
+  ant
+  ewe
+fruit
+  elk
+  doe
+bird
+  cod
+  pup
+fish
+  ram
+  kit
+tree
+  hen
+  cub
+gem
+  jay
+  fawn
+herb
+  yak
+  colt
+rock
+  ewe
+  joey
+star
+  doe
+  dog
+wind
+  pup
+  cat
+animal
+  kit
+  fox
+plant
+  cub
+  owl
+food
+  fawn
+  bee
+metal
+  colt
+  ant
+color
+  joey
+  elk
+tool
+  dog
+  cod
+fruit
+  cat
+  ram
+bird
+  fox
+  hen
+fish
+  owl
+  jay
+tree
+  bee
+  yak
+gem
+  ant
+  ewe
+herb
+  elk
+  doe
+rock
+  cod
+  pup
+star
+  ram
+  kit
+wind
+  hen
+  cub
+animal
+  jay
+  fawn
+plant
+  yak
+  colt
+food
+  ewe
+  joey
+metal
+  doe
+  dog
+color
+  pup
+  cat
+tool
+  kit
+  fox
+fruit
+  cub
+  owl
+bird
+  fawn
+  bee
+fish
+  colt
+  ant
+tree
+  joey
+  elk
+gem
+  dog
+  cod
+herb
+  cat
+  ram
+rock
+  fox
+  hen
+star
+  owl
+  jay
+wind
+  bee
+  yak
+animal
+  ant
+  ewe
+plant
+  elk
+  doe
+food
+  cod
+  pup
+metal
+  ram
+  kit
+color
+  hen
+  cub
+tool
+  jay
+  fawn
+fruit
+  yak
+  colt
+bird
+  ewe
+  joey
+fish
+  doe
+  dog
+tree
+  pup
+  cat
+gem
+  kit
+  fox
+herb
+  cub
+  owl
+rock
+  fawn
+  bee
+star
+  colt
+  ant
+wind
+  joey
+  elk
+animal
+  dog
+  cod
+plant
+  cat
+  ram
+food
+  fox
+  hen
+metal
+  owl
+  jay
+color
+  bee
+  yak
+tool
+  ant
+  ewe
+fruit
+  elk
+  doe
+bird
+  cod
+  pup
+fish
+  ram
+  kit
+tree
+  hen
+  cub
+gem
+  jay
+  fawn
+herb
+  yak
+  colt
+rock
+  ewe
+  joey
+star
+  doe
+  dog
+wind
+  pup
+  cat
+animal
+  kit
+  fox
+plant
+  cub
+  owl
+food
+  fawn
+  bee
+metal
+  colt
+  ant
+color
+  joey
+  elk
+tool
+  dog
+  cod
+fruit
+  cat
+  ram
+bird
+  fox
+  hen
+fish
+  owl
+  jay
+tree
+  bee
+  yak
+gem
+  ant
+  ewe
+herb
+  elk
+  doe
+rock
+  cod
+  pup
+star
+  ram
+  kit
+wind
+  hen
+  cub
+animal
+  jay
+  fawn
+plant
+  yak
+  colt
+food
+  ewe
+  joey
+metal
+  doe
+  dog
+color
+  pup
+  cat
+tool
+  kit
+  fox
+fruit
+  cub
+  owl
+bird
+  fawn
+  bee
+fish
+  colt
+  ant
+tree
+  joey
+  elk
+--- GOAL ---
+animal::Dog
+animal::Cod
+plant::Cat
+plant::Ram
+food::Fox
+food::Hen
+metal::Owl
+metal::Jay
+color::Bee
+color::Yak
+tool::Ant
+tool::Ewe
+fruit::Elk
+fruit::Doe
+bird::Cod
+bird::Pup
+fish::Ram
+fish::Kit
+tree::Hen
+tree::Cub
+gem::Jay
+gem::Fawn
+herb::Yak
+herb::Colt
+rock::Ewe
+rock::Joey
+star::Doe
+star::Dog
+wind::Pup
+wind::Cat
+animal::Kit
+animal::Fox
+plant::Cub
+plant::Owl
+food::Fawn
+food::Bee
+metal::Colt
+metal::Ant
+color::Joey
+color::Elk
+tool::Dog
+tool::Cod
+fruit::Cat
+fruit::Ram
+bird::Fox
+bird::Hen
+fish::Owl
+fish::Jay
+tree::Bee
+tree::Yak
+gem::Ant
+gem::Ewe
+herb::Elk
+herb::Doe
+rock::Cod
+rock::Pup
+star::Ram
+star::Kit
+wind::Hen
+wind::Cub
+animal::Jay
+animal::Fawn
+plant::Yak
+plant::Colt
+food::Ewe
+food::Joey
+metal::Doe
+metal::Dog
+color::Pup
+color::Cat
+tool::Kit
+tool::Fox
+fruit::Cub
+fruit::Owl
+bird::Fawn
+bird::Bee
+fish::Colt
+fish::Ant
+tree::Joey
+tree::Elk
+gem::Dog
+gem::Cod
+herb::Cat
+herb::Ram
+rock::Fox
+rock::Hen
+star::Owl
+star::Jay
+wind::Bee
+wind::Yak
+animal::Ant
+animal::Ewe
+plant::Elk
+plant::Doe
+food::Cod
+food::Pup
+metal::Ram
+metal::Kit
+color::Hen
+color::Cub
+tool::Jay
+tool::Fawn
+fruit::Yak
+fruit::Colt
+bird::Ewe
+bird::Joey
+fish::Doe
+fish::Dog
+tree::Pup
+tree::Cat
+gem::Kit
+gem::Fox
+herb::Cub
+herb::Owl
+rock::Fawn
+rock::Bee
+star::Colt
+star::Ant
+wind::Joey
+wind::Elk
+animal::Dog
+animal::Cod
+plant::Cat
+plant::Ram
+food::Fox
+food::Hen
+metal::Owl
+metal::Jay
+color::Bee
+color::Yak
+tool::Ant
+tool::Ewe
+fruit::Elk
+fruit::Doe
+bird::Cod
+bird::Pup
+fish::Ram
+fish::Kit
+tree::Hen
+tree::Cub
+gem::Jay
+gem::Fawn
+herb::Yak
+herb::Colt
+rock::Ewe
+rock::Joey
+star::Doe
+star::Dog
+wind::Pup
+wind::Cat
+animal::Kit
+animal::Fox
+plant::Cub
+plant::Owl
+food::Fawn
+food::Bee
+metal::Colt
+metal::Ant
+color::Joey
+color::Elk
+tool::Dog
+tool::Cod
+fruit::Cat
+fruit::Ram
+bird::Fox
+bird::Hen
+fish::Owl
+fish::Jay
+tree::Bee
+tree::Yak
+gem::Ant
+gem::Ewe
+herb::Elk
+herb::Doe
+rock::Cod
+rock::Pup
+star::Ram
+star::Kit
+wind::Hen
+wind::Cub
+animal::Jay
+animal::Fawn
+plant::Yak
+plant::Colt
+food::Ewe
+food::Joey
+metal::Doe
+metal::Dog
+color::Pup
+color::Cat
+tool::Kit
+tool::Fox
+fruit::Cub
+fruit::Owl
+bird::Fawn
+bird::Bee
+fish::Colt
+fish::Ant
+tree::Joey
+tree::Elk
+--- END ---

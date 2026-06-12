@@ -1,0 +1,308 @@
+desc: Extract the 100 ERR lines from 200, reformat, and reverse
+category: expert
+par: 48
+hint1: Inverse-filter the noise first; then .* is greedy enough to swallow the whole prefix in one bite.
+hint2: A bare :s/ / bites only the first space; ending a sub before its final delimiter is legal; :g/^/m0 stands every line on its head.
+--- START ---
+08:01:00 ERR auth alice login 0
+08:02:01 DEBUG billing - charge 7
+08:03:02 ERR cache carol evict 14
+08:04:03 INFO search - query 21
+08:05:04 ERR queue erin flush 28
+08:06:05 WARN mailer - send 35
+08:07:06 ERR proxy gita fetch 42
+08:08:07 DEBUG worker - route 49
+08:09:08 ERR router ivan scale 56
+08:10:09 INFO scaler - purge 63
+08:11:10 ERR auth alice login 70
+08:12:11 WARN billing - charge 77
+08:13:12 ERR cache carol evict 84
+08:14:13 DEBUG search - query 91
+08:15:14 ERR queue erin flush 98
+08:16:15 INFO mailer - send 105
+08:17:16 ERR proxy gita fetch 112
+08:18:17 WARN worker - route 119
+08:19:18 ERR router ivan scale 126
+08:20:19 DEBUG scaler - purge 133
+08:21:20 ERR auth alice login 140
+08:22:21 INFO billing - charge 147
+08:23:22 ERR cache carol evict 154
+08:24:23 WARN search - query 161
+08:25:24 ERR queue erin flush 168
+08:26:25 DEBUG mailer - send 175
+08:27:26 ERR proxy gita fetch 182
+08:28:27 INFO worker - route 189
+08:29:28 ERR router ivan scale 196
+08:30:29 WARN scaler - purge 203
+08:31:30 ERR auth alice login 210
+08:32:31 DEBUG billing - charge 217
+08:33:32 ERR cache carol evict 224
+08:34:33 INFO search - query 231
+08:35:34 ERR queue erin flush 238
+08:36:35 WARN mailer - send 245
+08:37:36 ERR proxy gita fetch 252
+08:38:37 DEBUG worker - route 259
+08:39:38 ERR router ivan scale 266
+08:40:39 INFO scaler - purge 273
+08:41:40 ERR auth alice login 280
+08:42:41 WARN billing - charge 287
+08:43:42 ERR cache carol evict 294
+08:44:43 DEBUG search - query 301
+08:45:44 ERR queue erin flush 308
+08:46:45 INFO mailer - send 315
+08:47:46 ERR proxy gita fetch 322
+08:48:47 WARN worker - route 329
+08:49:48 ERR router ivan scale 336
+08:50:49 DEBUG scaler - purge 343
+08:51:50 ERR auth alice login 350
+08:52:51 INFO billing - charge 357
+08:53:52 ERR cache carol evict 364
+08:54:53 WARN search - query 371
+08:55:54 ERR queue erin flush 378
+08:56:55 DEBUG mailer - send 385
+08:57:56 ERR proxy gita fetch 392
+08:58:57 INFO worker - route 399
+08:59:58 ERR router ivan scale 406
+09:00:00 WARN scaler - purge 413
+09:01:01 ERR auth alice login 420
+09:02:02 DEBUG billing - charge 427
+09:03:03 ERR cache carol evict 434
+09:04:04 INFO search - query 441
+09:05:05 ERR queue erin flush 448
+09:06:06 WARN mailer - send 455
+09:07:07 ERR proxy gita fetch 462
+09:08:08 DEBUG worker - route 469
+09:09:09 ERR router ivan scale 476
+09:10:10 INFO scaler - purge 483
+09:11:11 ERR auth alice login 490
+09:12:12 WARN billing - charge 497
+09:13:13 ERR cache carol evict 504
+09:14:14 DEBUG search - query 511
+09:15:15 ERR queue erin flush 518
+09:16:16 INFO mailer - send 525
+09:17:17 ERR proxy gita fetch 532
+09:18:18 WARN worker - route 539
+09:19:19 ERR router ivan scale 546
+09:20:20 DEBUG scaler - purge 553
+09:21:21 ERR auth alice login 560
+09:22:22 INFO billing - charge 567
+09:23:23 ERR cache carol evict 574
+09:24:24 WARN search - query 581
+09:25:25 ERR queue erin flush 588
+09:26:26 DEBUG mailer - send 595
+09:27:27 ERR proxy gita fetch 602
+09:28:28 INFO worker - route 609
+09:29:29 ERR router ivan scale 616
+09:30:30 WARN scaler - purge 623
+09:31:31 ERR auth alice login 630
+09:32:32 DEBUG billing - charge 637
+09:33:33 ERR cache carol evict 644
+09:34:34 INFO search - query 651
+09:35:35 ERR queue erin flush 658
+09:36:36 WARN mailer - send 665
+09:37:37 ERR proxy gita fetch 672
+09:38:38 DEBUG worker - route 679
+09:39:39 ERR router ivan scale 686
+09:40:40 INFO scaler - purge 693
+09:41:41 ERR auth alice login 700
+09:42:42 WARN billing - charge 707
+09:43:43 ERR cache carol evict 714
+09:44:44 DEBUG search - query 721
+09:45:45 ERR queue erin flush 728
+09:46:46 INFO mailer - send 735
+09:47:47 ERR proxy gita fetch 742
+09:48:48 WARN worker - route 749
+09:49:49 ERR router ivan scale 756
+09:50:50 DEBUG scaler - purge 763
+09:51:51 ERR auth alice login 770
+09:52:52 INFO billing - charge 777
+09:53:53 ERR cache carol evict 784
+09:54:54 WARN search - query 791
+09:55:55 ERR queue erin flush 798
+09:56:56 DEBUG mailer - send 805
+09:57:57 ERR proxy gita fetch 812
+09:58:58 INFO worker - route 819
+09:59:00 ERR router ivan scale 826
+10:00:01 WARN scaler - purge 833
+10:01:02 ERR auth alice login 840
+10:02:03 DEBUG billing - charge 847
+10:03:04 ERR cache carol evict 854
+10:04:05 INFO search - query 861
+10:05:06 ERR queue erin flush 868
+10:06:07 WARN mailer - send 875
+10:07:08 ERR proxy gita fetch 882
+10:08:09 DEBUG worker - route 889
+10:09:10 ERR router ivan scale 896
+10:10:11 INFO scaler - purge 3
+10:11:12 ERR auth alice login 10
+10:12:13 WARN billing - charge 17
+10:13:14 ERR cache carol evict 24
+10:14:15 DEBUG search - query 31
+10:15:16 ERR queue erin flush 38
+10:16:17 INFO mailer - send 45
+10:17:18 ERR proxy gita fetch 52
+10:18:19 WARN worker - route 59
+10:19:20 ERR router ivan scale 66
+10:20:21 DEBUG scaler - purge 73
+10:21:22 ERR auth alice login 80
+10:22:23 INFO billing - charge 87
+10:23:24 ERR cache carol evict 94
+10:24:25 WARN search - query 101
+10:25:26 ERR queue erin flush 108
+10:26:27 DEBUG mailer - send 115
+10:27:28 ERR proxy gita fetch 122
+10:28:29 INFO worker - route 129
+10:29:30 ERR router ivan scale 136
+10:30:31 WARN scaler - purge 143
+10:31:32 ERR auth alice login 150
+10:32:33 DEBUG billing - charge 157
+10:33:34 ERR cache carol evict 164
+10:34:35 INFO search - query 171
+10:35:36 ERR queue erin flush 178
+10:36:37 WARN mailer - send 185
+10:37:38 ERR proxy gita fetch 192
+10:38:39 DEBUG worker - route 199
+10:39:40 ERR router ivan scale 206
+10:40:41 INFO scaler - purge 213
+10:41:42 ERR auth alice login 220
+10:42:43 WARN billing - charge 227
+10:43:44 ERR cache carol evict 234
+10:44:45 DEBUG search - query 241
+10:45:46 ERR queue erin flush 248
+10:46:47 INFO mailer - send 255
+10:47:48 ERR proxy gita fetch 262
+10:48:49 WARN worker - route 269
+10:49:50 ERR router ivan scale 276
+10:50:51 DEBUG scaler - purge 283
+10:51:52 ERR auth alice login 290
+10:52:53 INFO billing - charge 297
+10:53:54 ERR cache carol evict 304
+10:54:55 WARN search - query 311
+10:55:56 ERR queue erin flush 318
+10:56:57 DEBUG mailer - send 325
+10:57:58 ERR proxy gita fetch 332
+10:58:00 INFO worker - route 339
+10:59:01 ERR router ivan scale 346
+11:00:02 WARN scaler - purge 353
+11:01:03 ERR auth alice login 360
+11:02:04 DEBUG billing - charge 367
+11:03:05 ERR cache carol evict 374
+11:04:06 INFO search - query 381
+11:05:07 ERR queue erin flush 388
+11:06:08 WARN mailer - send 395
+11:07:09 ERR proxy gita fetch 402
+11:08:10 DEBUG worker - route 409
+11:09:11 ERR router ivan scale 416
+11:10:12 INFO scaler - purge 423
+11:11:13 ERR auth alice login 430
+11:12:14 WARN billing - charge 437
+11:13:15 ERR cache carol evict 444
+11:14:16 DEBUG search - query 451
+11:15:17 ERR queue erin flush 458
+11:16:18 INFO mailer - send 465
+11:17:19 ERR proxy gita fetch 472
+11:18:20 WARN worker - route 479
+11:19:21 ERR router ivan scale 486
+11:20:22 DEBUG scaler - purge 493
+--- GOAL ---
+router/ivan scale 486ms
+proxy/gita fetch 472ms
+queue/erin flush 458ms
+cache/carol evict 444ms
+auth/alice login 430ms
+router/ivan scale 416ms
+proxy/gita fetch 402ms
+queue/erin flush 388ms
+cache/carol evict 374ms
+auth/alice login 360ms
+router/ivan scale 346ms
+proxy/gita fetch 332ms
+queue/erin flush 318ms
+cache/carol evict 304ms
+auth/alice login 290ms
+router/ivan scale 276ms
+proxy/gita fetch 262ms
+queue/erin flush 248ms
+cache/carol evict 234ms
+auth/alice login 220ms
+router/ivan scale 206ms
+proxy/gita fetch 192ms
+queue/erin flush 178ms
+cache/carol evict 164ms
+auth/alice login 150ms
+router/ivan scale 136ms
+proxy/gita fetch 122ms
+queue/erin flush 108ms
+cache/carol evict 94ms
+auth/alice login 80ms
+router/ivan scale 66ms
+proxy/gita fetch 52ms
+queue/erin flush 38ms
+cache/carol evict 24ms
+auth/alice login 10ms
+router/ivan scale 896ms
+proxy/gita fetch 882ms
+queue/erin flush 868ms
+cache/carol evict 854ms
+auth/alice login 840ms
+router/ivan scale 826ms
+proxy/gita fetch 812ms
+queue/erin flush 798ms
+cache/carol evict 784ms
+auth/alice login 770ms
+router/ivan scale 756ms
+proxy/gita fetch 742ms
+queue/erin flush 728ms
+cache/carol evict 714ms
+auth/alice login 700ms
+router/ivan scale 686ms
+proxy/gita fetch 672ms
+queue/erin flush 658ms
+cache/carol evict 644ms
+auth/alice login 630ms
+router/ivan scale 616ms
+proxy/gita fetch 602ms
+queue/erin flush 588ms
+cache/carol evict 574ms
+auth/alice login 560ms
+router/ivan scale 546ms
+proxy/gita fetch 532ms
+queue/erin flush 518ms
+cache/carol evict 504ms
+auth/alice login 490ms
+router/ivan scale 476ms
+proxy/gita fetch 462ms
+queue/erin flush 448ms
+cache/carol evict 434ms
+auth/alice login 420ms
+router/ivan scale 406ms
+proxy/gita fetch 392ms
+queue/erin flush 378ms
+cache/carol evict 364ms
+auth/alice login 350ms
+router/ivan scale 336ms
+proxy/gita fetch 322ms
+queue/erin flush 308ms
+cache/carol evict 294ms
+auth/alice login 280ms
+router/ivan scale 266ms
+proxy/gita fetch 252ms
+queue/erin flush 238ms
+cache/carol evict 224ms
+auth/alice login 210ms
+router/ivan scale 196ms
+proxy/gita fetch 182ms
+queue/erin flush 168ms
+cache/carol evict 154ms
+auth/alice login 140ms
+router/ivan scale 126ms
+proxy/gita fetch 112ms
+queue/erin flush 98ms
+cache/carol evict 84ms
+auth/alice login 70ms
+router/ivan scale 56ms
+proxy/gita fetch 42ms
+queue/erin flush 28ms
+cache/carol evict 14ms
+auth/alice login 0ms
+--- END ---

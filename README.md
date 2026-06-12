@@ -28,6 +28,7 @@ Each level presents a **START** text and a **GOAL** text side by side. Your job 
 | `p` | Play all (normal) levels sequentially |
 | `l` | Level select |
 | `h` | Hard mode (unlocked per level) |
+| `e` | Expert track (no solution key) |
 | `s` | Scoreboard |
 | `k` | Solution key |
 | `r` | Reset scores |
@@ -53,7 +54,7 @@ Each level presents a **START** text and a **GOAL** text side by side. Your job 
 
 ## Tracks
 
-The game has two independent level tracks plus a scaled hard mode:
+The game has three independent level tracks plus a scaled hard mode:
 
 - **Tutorial** (`tutorial/`, 15 levels) — a beginner ramp that teaches vim
   fundamentals through hands-on editing: **motions and text objects**,
@@ -62,6 +63,14 @@ The game has two independent level tracks plus a scaled hard mode:
 - **Normal** (`levels/`, 15 levels) — the original challenges, leaning on
   powerful Ex commands (`:s`, `:g`, `:sort`, `:norm`, external filters).
 - **Hard** — a programmatically-scaled variant of the Normal levels (see below).
+- **Expert** (`expert/`, 6 levels) — brutal multi-stage challenges that demand
+  combining many techniques in one solution (multiline regex, the `\=`
+  expression register, `:global` reordering, registers + macros, visual-block
+  arithmetic). Each operates on **100+ lines of input**, so a manual,
+  line-by-line approach can't reach par — only a scale-invariant command or
+  macro solution wins (same philosophy as Hard mode). **No solution key** —
+  each shows as hidden. Par 37–49. Ordered
+  easiest-first.
 
 ### Tutorial levels
 
@@ -103,10 +112,25 @@ The game has two independent level tracks plus a scaled hard mode:
 | 14 | Number each line | manual | 16 | 17 |
 | 15 | The Final Boss: flatten to valid YAML | ex | 25 | 25 |
 
+### Expert levels
+
+No hints below — these intentionally ship without solutions. Each combines
+several techniques into one chain, and each runs on 100+ lines so manual
+editing can't reach par.
+
+| # | Challenge | Input lines | Par |
+|---|-----------|-------------|-----|
+| 1 | Collapse 100 indented outline blocks into `parent::Child` breadcrumbs | 300 | 37 |
+| 2 | Pretty-print 100 messy `KEY: Value` lines as one JSON object | 100 | 43 |
+| 3 | Strip a qualifier, reverse, and renumber 100 enum members 1..N | 100 | 44 |
+| 4 | Collapse 100 INI-style `[user]` blocks into one CSV row each | 499 | 47 |
+| 5 | Extract the 100 ERR lines from 200, reformat, and reverse | 200 | 48 |
+| 6 | Number 100 ids 1..N, then set each cap to id×50 | 100 | 49 |
+
 ## Adding Levels
 
-Level content lives in [`tutorial/`](tutorial/) and [`levels/`](levels/) —
-one `NN.level` file per level,
+Level content lives in [`tutorial/`](tutorial/), [`levels/`](levels/), and
+[`expert/`](expert/) — one `NN.level` file per level,
 separate from the game logic. To add a level, drop the next-numbered file into
 the track's directory (e.g. `tutorial/16.level` or `levels/16.level`); the game
 counts the files in each directory automatically and the solution key picks it
@@ -130,6 +154,10 @@ result = compute()
 
 Whitespace inside the START/GOAL blocks is preserved exactly, which matters
 for alignment and indentation puzzles.
+
+The `solution:` and `note:` lines are optional — omit them (as the Expert
+levels do) and that level shows as *hidden* in the solution key. `category`
+also accepts `expert`.
 
 ## Hard Mode
 

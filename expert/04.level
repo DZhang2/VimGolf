@@ -1,0 +1,607 @@
+desc: Collapse 100 INI-style [user] blocks into one CSV row each
+category: expert
+par: 47
+hint1: Newlines are characters too — a substitution can swallow the break before a key and weld two lines into one.
+hint2: Match role and city without naming them; then sweep away the headers and bare blanks in one global pass.
+--- START ---
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+
+[user]
+name = alice smith
+role = admin
+city = seattle
+
+[user]
+name = bob jones
+role = editor
+city = portland
+
+[user]
+name = carol white
+role = viewer
+city = denver
+
+[user]
+name = dave brown
+role = owner
+city = austin
+
+[user]
+name = eve black
+role = guest
+city = boston
+
+[user]
+name = frank green
+role = admin
+city = fresno
+
+[user]
+name = grace hall
+role = editor
+city = tucson
+
+[user]
+name = heidi katz
+role = viewer
+city = newark
+
+[user]
+name = ivan lee
+role = owner
+city = dayton
+
+[user]
+name = judy moss
+role = guest
+city = albany
+--- GOAL ---
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+alice smith,admin,seattle
+bob jones,editor,portland
+carol white,viewer,denver
+dave brown,owner,austin
+eve black,guest,boston
+frank green,admin,fresno
+grace hall,editor,tucson
+heidi katz,viewer,newark
+ivan lee,owner,dayton
+judy moss,guest,albany
+--- END ---
